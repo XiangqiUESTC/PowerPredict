@@ -28,4 +28,3 @@ max_pooling,relu,silu,leaky_relu,spmm,flatten,cat,lay_norm,embedding,
 positional_encoding,roi_align,nms,add,softmax,lstm  
 它们的含义详见说明文档  
 如果用户需要测试其他的算，用户也可以自定义算子，自定义算子的方法详见使用手册！
-g
