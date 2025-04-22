@@ -1,9 +1,11 @@
+import random
+
 import torch
 import torch.nn as nn
-from .base_operation import BaseOperation
+from core.base_processor import BaseProcessor
 
 
-class LinearLayer(BaseOperation):
+class LinearLayer(BaseProcessor):
     def __init__(self):
         super().__init__()
         self.input_tensor = None
@@ -16,18 +18,20 @@ class LinearLayer(BaseOperation):
         - 输入形状: (C_in, 1, 1)（假设输入已被展平）
         - 输出形状: (C_out)
         """
+        C_in = random.randint(1,10000)
+        C_out = random.randint(1,10000)
         self.config = {
             "tensor_shape": (C_in, 1, 1),  # 输入形状 (C_in, 1, 1)
             "out_channels": C_out          # 输出通道数（即 C_out）
         }
         # 初始化全连接层
-        self.linear = nn.Linear(C_in, C_out)
+        self.linear = nn.Linear(C_in, C_out).to("cuda")
 
     def setup(self):
         """根据配置生成输入张量"""
         C_in, H_in, W_in = self.config["tensor_shape"]
         self.input_tensor = torch.randn(
-            (C_in, H_in, W_in),  # 输入形状 (25088, 1, 1)
+            (C_in, 1, 1),  # 输入形状 (25088, 1, 1)
             dtype=torch.float32,
             device="cuda"
         )
@@ -44,12 +48,3 @@ class LinearLayer(BaseOperation):
         self.output_tensor = output.squeeze(0)
         return self.output_tensor
 
-
-# 示例用法
-# linear_layer = LinearLayer()
-# linear_layer.generate_config()  # 默认参数 C_in=25088, C_out=4096
-# linear_layer.setup()
-# linear_layer.execute()
-#
-# print("输入形状:", linear_layer.input_tensor.shape)  # torch.Size([25088, 1, 1])
-# print("输出形状:", linear_layer.output_tensor.shape)  # torch.Size([4096])

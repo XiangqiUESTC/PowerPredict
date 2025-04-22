@@ -1,9 +1,9 @@
 import torch
-from .base_operation import BaseOperation
+from core.base_processor import BaseProcessor
 import random
 
 
-class ReLU(BaseOperation):
+class GELU(BaseProcessor):
     def __init__(self):
         super().__init__()
         self.input_tensor = None
@@ -14,19 +14,18 @@ class ReLU(BaseOperation):
         MIN_DIM_NUM = 1
         SINGLE_DIM_LENGTH_MAX = 512
         SINGLE_DIM_LENGTH_MIN = 1
-        # 多少维的向量
+        # 生成随机维度的张量形状
         k = random.randint(MIN_DIM_NUM, MAX_DIM_NUM)
         arr = [random.randint(SINGLE_DIM_LENGTH_MIN, SINGLE_DIM_LENGTH_MAX) for _ in range(k)]
-
-        self.config = {"tensor_shape": arr}  # 移除dim字段
-
+        self.config = {"tensor_shape": arr}
     def setup(self):
         self.input_tensor = torch.tensor(
             self.config["tensor_shape"],
             dtype=torch.float,
-            device="cuda",
-            )
+            device="cuda"
+        )
 
     def execute(self):
-        # ReLU是逐元素操作，无需指定维度
-        self.output_tensor = torch.relu(self.input_tensor)
+        # GELU是逐元素操作，无需指定维度
+        self.output_tensor = torch.nn.GELU(self.input_tensor)
+        return self.output_tensor

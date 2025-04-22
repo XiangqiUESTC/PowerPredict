@@ -1,9 +1,9 @@
-from .base_operation import BaseOperation
+from core.base_processor import BaseProcessor
 import random
 import torch
 
 
-class Add(BaseOperation):
+class Add(BaseProcessor):
     def __init__(self):
         super().__init__()
         self.A = None
@@ -15,7 +15,7 @@ class Add(BaseOperation):
         # 最小维数
         MIN_DIM_NUM = 1
         # 每个维度的区间
-        SINGLE_DIM_LENGTH_MAX = 512
+        SINGLE_DIM_LENGTH_MAX = 256
         SINGLE_DIM_LENGTH_MIN = 1
 
         # 随机维度数量

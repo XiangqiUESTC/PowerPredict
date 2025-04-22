@@ -1,9 +1,9 @@
 import torch
-from .base_operation import BaseOperation
+from core.base_processor import BaseProcessor
 import random
 
 
-class SiLU(BaseOperation):
+class Leaky_ReLu(BaseProcessor):
     def __init__(self):
         super().__init__()
         self.input_tensor = None
@@ -14,13 +14,9 @@ class SiLU(BaseOperation):
         MIN_DIM_NUM = 1
         SINGLE_DIM_LENGTH_MAX = 512
         SINGLE_DIM_LENGTH_MIN = 1
-
-        # 生成随机维度的张量形状（SiLU不需要操作维度，因此移除dim相关逻辑）
         k = random.randint(MIN_DIM_NUM, MAX_DIM_NUM)
         arr = [random.randint(SINGLE_DIM_LENGTH_MIN, SINGLE_DIM_LENGTH_MAX) for _ in range(k)]
-
-        self.config = {"tensor_shape": arr}  # 移除dim字段
-
+        self.config = {"tensor_shape": arr}
     def setup(self):
         self.input_tensor = torch.tensor(
             self.config["tensor_shape"],
@@ -29,6 +25,7 @@ class SiLU(BaseOperation):
         )
 
     def execute(self):
-        # SiLU是逐元素操作，无需指定维度
-        self.output_tensor = torch.nn.SiLU(self.input_tensor)
+        # LeakyReLU是逐元素操作，无需指定维度
+        # 负斜率设为默认值0.01（可调整）
+        self.output_tensor = torch.nn.functional.leaky_relu(self.input_tensor, negative_slope=0.01)
         return self.output_tensor

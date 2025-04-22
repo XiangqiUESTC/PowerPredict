@@ -1,11 +1,11 @@
-from .base_operation import BaseOperation
+from core.base_processor import BaseProcessor
 import random
 import torch
 
 from torchvision.ops import roi_align
 
 
-class RoIAlign(BaseOperation):
+class RoIAlign(BaseProcessor):
     def __init__(self):
         super().__init__()
         self.feature_map = None
@@ -21,12 +21,9 @@ class RoIAlign(BaseOperation):
         C = random.randint(1, 256)  # channels
         H = random.randint(32, 128)  # height
         W = random.randint(32, 128)  # width
-
         num_rois = random.randint(1, 64)  # ROI 数量
-
         pooled_h = random.randint(2, 14)
         pooled_w = random.randint(2, 14)
-
         self.config = {
             "feature_map_shape": [B, C, H, W],
             "num_rois": num_rois,

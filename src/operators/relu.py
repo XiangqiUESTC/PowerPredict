@@ -1,12 +1,11 @@
 import torch
-from .base_operation import BaseOperation
+from core.base_processor import BaseProcessor
 import random
 
 
-class ELU(BaseOperation):
-    def __init__(self, alpha=1.0):
+class ReLU(BaseProcessor):
+    def __init__(self):
         super().__init__()
-        self.alpha = alpha  # 控制负值区域的缩放因子
         self.input_tensor = None
         self.output_tensor = None
 
@@ -15,21 +14,18 @@ class ELU(BaseOperation):
         MIN_DIM_NUM = 1
         SINGLE_DIM_LENGTH_MAX = 512
         SINGLE_DIM_LENGTH_MIN = 1
-
-        # 生成随机维度的张量形状（ELU不需要操作维度）
+        # 多少维的向量
         k = random.randint(MIN_DIM_NUM, MAX_DIM_NUM)
         arr = [random.randint(SINGLE_DIM_LENGTH_MIN, SINGLE_DIM_LENGTH_MAX) for _ in range(k)]
-
         self.config = {"tensor_shape": arr}  # 移除dim字段
 
     def setup(self):
         self.input_tensor = torch.tensor(
             self.config["tensor_shape"],
             dtype=torch.float,
-            device="cuda"
-        )
+            device="cuda",
+            )
 
     def execute(self):
-        # ELU是逐元素操作，无需指定维度
-        self.output_tensor = torch.nn.functional.elu(self.input_tensor, alpha=self.alpha)
-        return self.output_tensor
+        # ReLU是逐元素操作，无需指定维度
+        self.output_tensor = torch.relu(self.input_tensor)

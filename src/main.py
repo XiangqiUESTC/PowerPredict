@@ -5,7 +5,7 @@ import threading
 import subprocess
 import csv
 from datetime import datetime
-from operations import *
+from operators import *
 import os
 
 

@@ -1,11 +1,11 @@
 from torch import nn
 
-from .base_operation import BaseOperation
+from core.base_processor import BaseProcessor
 import random
 import torch
 
 
-class Embedding(BaseOperation):
+class Embedding(BaseProcessor):
     def __init__(self):
         super().__init__()
         self.embedding = None
@@ -36,7 +36,6 @@ class Embedding(BaseOperation):
         num_embeddings = self.config["num_embeddings"]
         embedding_dim = self.config["embedding_dim"]
         input_shape = self.config["input_shape"]
-
         self.embedding = nn.Embedding(num_embeddings, embedding_dim).to("cuda")
         self.input_tensor = torch.randint(
             low=0,

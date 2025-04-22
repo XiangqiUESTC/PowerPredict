@@ -1,7 +1,7 @@
 from abc import ABC, abstractmethod
 
 
-class BaseOperation(ABC):
+class BaseProcessor(ABC):
     """
         算子基本类，抽象方法
     """

@@ -1,10 +1,10 @@
 import torch
 
-from .base_operation import BaseOperation
+from core.base_processor import BaseProcessor
 import random
 
 
-class Softmax(BaseOperation):
+class Softmax(BaseProcessor):
     def __init__(self):
         super().__init__()
         self.input_tensor = None
@@ -16,7 +16,7 @@ class Softmax(BaseOperation):
         MIN_DIM_NUM = 1
         # 每个维度的区间
         SINGLE_DIM_LENGTH_MAX = 1024
-        SINGLE_DIM_LENGTH_MIN = 512
+        SINGLE_DIM_LENGTH_MIN = 1
 
         # 随机维度数量
         k = random.randint(MIN_DIM_NUM, MAX_DIM_NUM)

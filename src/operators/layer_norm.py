@@ -1,11 +1,11 @@
 from torch import nn
 
-from .base_operation import BaseOperation
+from core.base_processor import BaseProcessor
 import random
 import torch
 
 
-class LayerNorm(BaseOperation):
+class LayerNorm(BaseProcessor):
     def __init__(self):
         super().__init__()
         self.input_tensor = None
@@ -17,7 +17,7 @@ class LayerNorm(BaseOperation):
         # 最小维数
         MIN_DIM_NUM = 1
         # 每个维度的区间
-        SINGLE_DIM_LENGTH_MAX = 512
+        SINGLE_DIM_LENGTH_MAX = 256
         SINGLE_DIM_LENGTH_MIN = 1
 
         # 随机维度数量

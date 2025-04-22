@@ -1,11 +1,11 @@
 import math
 
-from .base_operation import BaseOperation
+from core.base_processor import BaseProcessor
 import random
 import torch
 
 
-class PositionalEncoding(BaseOperation):
+class PositionalEncoding(BaseProcessor):
     def __init__(self):
         super().__init__()
         self.encoding = None
@@ -30,7 +30,6 @@ class PositionalEncoding(BaseOperation):
 
         position = torch.arange(0, seq_len, dtype=torch.float).unsqueeze(1)  # [seq_len, 1]
         div_term = torch.exp(torch.arange(0, d_model, 2).float() * (-math.log(10000.0) / d_model))  # [d_model//2]
-
         pe = torch.zeros(seq_len, d_model)
         pe[:, 0::2] = torch.sin(position * div_term)  # even index
         pe[:, 1::2] = torch.cos(position * div_term)  # odd index

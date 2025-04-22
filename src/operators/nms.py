@@ -1,11 +1,11 @@
-from .base_operation import BaseOperation
+from core.base_processor import BaseProcessor
 import random
 import torch
 
 from torchvision.ops import nms
 
 
-class NMS(BaseOperation):
+class NMS(BaseProcessor):
     def __init__(self):
         super().__init__()
         self.boxes = None

@@ -2,11 +2,11 @@ import math
 
 import torch
 
-from .base_operation import BaseOperation
+from core.base_processor import BaseProcessor
 import random
 
 
-class Spmm(BaseOperation):
+class Spmm(BaseProcessor):
     """
         稀疏矩阵乘法算子
     """
@@ -20,8 +20,8 @@ class Spmm(BaseOperation):
         SINGLE_DIM_LENGTH_MAX = 512
         SINGLE_DIM_LENGTH_MIN = 1
         # 稀疏度
-        MAX_SPARSITY = 0.3
-        MIN_SPARSITY = 0.001
+        MAX_SPARSITY = 0.6
+        MIN_SPARSITY = 0.01
         # 生成m×p和p×n的矩阵
         m = random.randint(SINGLE_DIM_LENGTH_MIN, SINGLE_DIM_LENGTH_MAX)
         p = random.randint(SINGLE_DIM_LENGTH_MIN, SINGLE_DIM_LENGTH_MAX)
@@ -47,18 +47,14 @@ class Spmm(BaseOperation):
         p = self.config["p"]
         n = self.config["n"]
         nnz = self.config["nnz"]
-
         # 构造稀疏矩阵的索引
         rows = torch.randint(0, m, (nnz,))
         cols = torch.randint(0, p, (nnz,))
         indices = torch.stack([rows, cols], dim=0)  # [2, nnz]
-
         # 构造对应的非零值
         values = torch.randn(nnz)
-
         # 构造稀疏矩阵 A，大小为 [m, p]
         self.A = torch.sparse_coo_tensor(indices, values, size=(m, p)).coalesce()
-
         # 构造稠密矩阵 B，大小为 [p, n]
         self.B = torch.randn(p, n)
 
