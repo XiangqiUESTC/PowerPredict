@@ -2,3 +2,4 @@ test.py
 /temp/**
 /results/**
 .venv
+.idea
