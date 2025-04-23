@@ -1,5 +1,7 @@
 from abc import ABC, abstractmethod
 
+import torch
+
 
 class BaseProcessor(ABC):
     """
@@ -7,6 +9,7 @@ class BaseProcessor(ABC):
     """
     def __init__(self):
         self.config = None
+        self.device = torch.device("cuda" if torch.cuda.is_available() else "cpu")  # 统一设备管理
 
     @abstractmethod
     def generate_config(self):
