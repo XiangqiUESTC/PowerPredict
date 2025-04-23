@@ -6,6 +6,7 @@ import subprocess
 import csv
 from datetime import datetime
 from operators import *
+from models import *
 import os
 
 
@@ -241,6 +242,11 @@ if __name__ == '__main__':
     op_names = [
         "relu", "spmm", "flatten", "mat"
     ]
+    # 同时注册算子和模型
+    REGISTRY = {
+        **OPERATOR_REGISTRY,
+        **MODEL_REGISTRY,
+    }
 
     num_samples = 5
 
@@ -251,7 +257,7 @@ if __name__ == '__main__':
         print(f"没有提供测试次数！")
     else:
         op_names = sys.argv[1].split(",")
-        not_implements = [op_name for op_name in op_names if op_name not in OPERATION_REGISTRY]
+        not_implements = [op_name for op_name in op_names if op_name not in REGISTRY]
         if len(not_implements) > 0:
             print(f"找不到算子{not_implements}，您确定在operation模块下实现并在OPERATION_REGISTRY中注册了它吗？")
             exit(-1)
@@ -265,7 +271,7 @@ if __name__ == '__main__':
     print(op_names)
     print(f"每个算子测试{num_samples}次")
     for op_name in op_names:
-        op = OPERATION_REGISTRY[op_name]()
+        op = REGISTRY[op_name]()
 
         print(f"对算子{op_name}的实验开始!测试{num_samples}次!")
         operation_monitor(
