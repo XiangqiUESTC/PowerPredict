@@ -240,7 +240,7 @@ if __name__ == '__main__':
     #     "nms", "add", "softmax", "lstm"
     # ]
     op_names = [
-        "relu", "spmm", "flatten",
+        "relu", "spmm", "flatten", "alex_net"
     ]
     # 同时注册算子和模型
     REGISTRY = {
