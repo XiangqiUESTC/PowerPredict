@@ -10,12 +10,12 @@ from dataset.dataset import *
 class AlexNet(BaseProcessor):
     def __init__(self, num_classes=1000):
         super().__init__()
+        self.model = None
         self.data = None
         self.data_loader = None
         self.num_classes = num_classes
         self.config = {}
         self.dataset_name = 'cifar10'
-        self.device = torch.device("cuda" if torch.cuda.is_available() else "cpu")  # 统一设备管理
 
     def generate_config(self):
         # 批次上下限
@@ -63,6 +63,7 @@ class AlexNet(BaseProcessor):
         self.model.eval()  # 确保评估模式
 
         return self.model(self.data)
+
 
 if __name__ == "__main__":
     model = AlexNet()
