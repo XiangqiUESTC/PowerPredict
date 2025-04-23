@@ -1,3 +1,4 @@
 test.py
 /temp/**
 /results/**
+.venv
