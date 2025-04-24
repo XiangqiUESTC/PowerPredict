@@ -94,6 +94,7 @@ class Vgg(BaseProcessor):
 
         return self.model(self.data)
 
+
 if __name__ == "__main__":
     model = Vgg()
     model.generate_config()
