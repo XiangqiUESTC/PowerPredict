@@ -3,3 +3,5 @@ test.py
 /results/**
 .venv
 .idea
+dataset/**
+data/**
