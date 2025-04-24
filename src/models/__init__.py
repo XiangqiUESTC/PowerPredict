@@ -1,7 +1,7 @@
 from .alex_net import AlexNet
-from  .vgg import Vgg
+from .vgg import Vgg
 
 MODEL_REGISTRY = {
     'alex_net': AlexNet,
-    'vgg':vgg
+    'vgg': vgg
 }
