@@ -284,7 +284,8 @@ if __name__ == '__main__':
         op_names = sys.argv[1].split(",")
         not_implements = [op_name for op_name in op_names if op_name not in REGISTRY]
         if len(not_implements) > 0:
-            logger.error(f"找不到算子{not_implements}，您确定在operation模块下实现并在OPERATION_REGISTRY中注册了它吗？")
+            logger.error(f"找不到算子或模型{not_implements}，您确定在operator或models模块下实现"
+                         f"并在OPERATOR_REGISTRY或MODEL_REGISTRY中注册了它吗？")
             exit(-1)
         try:
             num_samples = int(sys.argv[2])
@@ -292,14 +293,14 @@ if __name__ == '__main__':
             logger.error(f"参数2必须是个整数！而不是{sys.argv[2]}")
             exit(-1)
 
-    logger.info(f"命令行参数解析完成，开始实验，测试的算子有：\n{op_names}")
-    logger.info(f"每个算子测试{num_samples}次")
+    logger.info(f"命令行参数解析完成，开始实验，测试的算子或模型有：\n{op_names}")
+    logger.info(f"每个算子或模型测试{num_samples}次")
 
     # 开始主循环
     for op_name in op_names:
         op = REGISTRY[op_name]()
 
-        logger.info(f"对算子{op_name}的实验开始!测试{num_samples}次!")
+        logger.info(f"对{op_name}的实验开始!测试{num_samples}次!")
         operation_monitor(
             op,
             op_name,
