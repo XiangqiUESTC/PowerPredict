@@ -16,21 +16,20 @@ class Vgg(BaseProcessor):
         self.config = {}
         self.adaptive_pool_size = 7  # 自适应池化目标尺寸
 
-
         self.data = None
         self.data_loader = None
         self.dataset_name = 'cifar10'
 
     def generate_config(self):
         """生成支持动态尺寸的配置"""
-        vgg_versions = ['vgg11','vgg13','vgg16','vgg19']
+        vgg_versions = ['vgg11', 'vgg13', 'vgg16', 'vgg19']
         BATCH_SIZE_MAX = 256
         BATCH_SIZE_MIN = 1
         # 选择数据大小批次
         batch_size = random.randint(BATCH_SIZE_MIN, BATCH_SIZE_MAX)
         self.config["batch_size"] = batch_size
         # 从可用数据集中随机选择一个数据集
-        dataset = [ "cifar10","flowers102"]
+        dataset = ["cifar10", "flowers102"]
         self.dataset_name = random.choice(dataset)
         self.num_classes = DATASET_INFO[self.dataset_name]['num_classes']
 
