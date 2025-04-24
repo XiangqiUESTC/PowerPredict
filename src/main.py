@@ -8,19 +8,28 @@ from datetime import datetime
 from operators import *
 from models import *
 import os
+from utils.logger import Logger
 
 
 # ----------------- GPU 监控线程 -----------------
-def gpu_monitor_thread_func(logfile, stop_flag,):
+def gpu_monitor_thread_func(logfile, stop_flag, l):
+    """
+    ARGS:
+        logfile: gpu监测信息的输出文件的绝对路径
+        stop_flag: stop_flag是一个字典，字典属于非基本变量，通过字典里面的值来在外部控制进程的结束
+        l: 日志实例对象
+    DESCRIPTION:
+        gpu监控线程函数
+    """
     # 新增目录创建逻辑
     os.makedirs(dirname(logfile), exist_ok=True)
     # 如果是昆仑芯NPU，则取消注释以下代码，并注释掉原有的监测GPU的代码
-    # print("MONITOR-NPU-THREAD")
+    # l.info("MONITOR-NPU-THREAD")
     # with open(logfile, 'w') as f:
     #     kml_proc = subprocess.Popen(["kml-smi", "--query", "power", "--interval", "1000"], stdout=kml_log)
     #     while not stop_flag["stop"]:
     #         line = kml_proc.stdout.readline()
-    #         # print("LINE: ", line)
+    #         # l.info("LINE: ", line)
     #         if line:
     #             f.write(line)
     #             f.flush()
@@ -40,12 +49,20 @@ def gpu_monitor_thread_func(logfile, stop_flag,):
                 f.write(f"{timestamp},{line}\n")
                 f.flush()
             except Exception as e:
-                print("GPU monitoring error:", e)
+                l.error("GPU monitoring error:", e)
                 break
 
 
 # ----------------- CPU 监控线程（使用 turbostat） -----------------
-def cpu_monitor_thread_func(logfile, stop_flag):
+def cpu_monitor_thread_func(logfile, stop_flag, l):
+    """
+    ARGS:
+        logfile: cpu监测信息的输出文件的绝对路径
+        stop_flag: stop_flag是一个字典，字典属于非基本变量，通过字典里面的值来在外部控制进程的结束
+        l: 日志实例对象
+    DESCRIPTION:
+        cpu监控线程函数
+    """
     # 新增目录创建逻辑
     os.makedirs(dirname(logfile), exist_ok=True)
     # 'turbostat' '--quiet' '--Summary' '--interval' '1'
@@ -55,7 +72,7 @@ def cpu_monitor_thread_func(logfile, stop_flag):
         while not stop_flag["stop"]:
             line = proc.stdout.readline()
             if line:
-                # print("LINE: ", line)
+                # l.info("LINE: ", line)
                 f.write(line)
                 f.flush()
         proc.terminate()
@@ -67,6 +84,7 @@ def write_csv(filename, data):
         filename: 要写入的文件名
         data: 数据,一个字典,键名为列名,键值为列值的列表
     DESCRIPTION:
+        读写csv的函数
     """
     # 新增目录创建逻辑
     os.makedirs(dirname(filename), exist_ok=True)
@@ -86,7 +104,7 @@ def write_csv(filename, data):
             writer.writerow(row)
 
 
-def operation_monitor(operation, operation_name, num_sample=1, loop_per_sample=64, preheat=8):
+def operation_monitor(operation, operation_name, l, num_sample=1, loop_per_sample=64, preheat=8):
     """
     ARGS:
         operation: operation是基本的算子,同时是base_operation的实现类的实例对象
@@ -94,6 +112,7 @@ def operation_monitor(operation, operation_name, num_sample=1, loop_per_sample=6
         num_sample: 该算子要测试的数据组数
         loop_per_sample: 每个算子重复测试的次数,最后取平均
         preheat: 预热次数
+        l: 日志实例对象
     DESCRIPTION:
         创建两个线程，分别监控该算子在运算时的CPU和GPU数据，分析并合并输出为csv
     """
@@ -115,7 +134,7 @@ def operation_monitor(operation, operation_name, num_sample=1, loop_per_sample=6
     # 循环num_sample次
     for i in range(num_sample):
         # 开始测试
-        print(f"[Test Case {i + 1} for {op_name}]: Starting monitoring and computation...")
+        l.info(f"Test Case {i + 1} for {op_name}: Starting monitoring and computation...")
         # 生成此次测试的配置
         _ = operation.generate_config()
         # 装配数据
@@ -129,13 +148,13 @@ def operation_monitor(operation, operation_name, num_sample=1, loop_per_sample=6
         # 启动GPU监控线程
         gpu_log = join(temp_dir, f'gpu_{operation_name}_{file_date}.csv')
         stop_gpu = {"stop": False}
-        gpu_thread = threading.Thread(target=gpu_monitor_thread_func, args=(gpu_log, stop_gpu))
+        gpu_thread = threading.Thread(target=gpu_monitor_thread_func, args=(gpu_log, stop_gpu, l))
         gpu_thread.start()
 
         # 启动CPU监控线程
         # cpu_log = join(temp_dir, f'cpu_{operation_name}_{file_date}.csv')
         # stop_cpu = {"stop": False}
-        # cpu_thread = threading.Thread(target=cpu_monitor_thread_func, args=(cpu_log, stop_cpu))
+        # cpu_thread = threading.Thread(target=cpu_monitor_thread_func, args=(cpu_log, stop_cpu, l))
         # cpu_thread.start()
 
         nanoseconds = time.time_ns()
@@ -196,13 +215,13 @@ def operation_monitor(operation, operation_name, num_sample=1, loop_per_sample=6
 
         test_config = op.config
 
-        print(test_config, gpu_data, other_data)
+        l.info(f"监测到数据\n{test_config}{gpu_data}{other_data}")
 
         # 分析 CPU 数据（取 PKG(W) 字段平均）
         # cpu_powers = []
         # with open(cpu_log, 'r') as f:
         #     for line in f:
-        #         # print("line: ", line)
+        #         # l.info("line: ", line)
         #         if 'Avg_MHz' not in line:
         #             parts = line.strip().split()
         #             try:
@@ -239,45 +258,53 @@ if __name__ == '__main__':
     #     "spmm", "flatten", "cat", "lay_norm", "embedding", "positional_encoding", "roi_align",
     #     "nms", "add", "softmax", "lstm"
     # ]
-    op_names = [
-        "spmm", "relu", "spmm", "flatten", "alex_net", "vgg", "add"
-    ]
     # 同时注册算子和模型
     REGISTRY = {
         **OPERATOR_REGISTRY,
         **MODEL_REGISTRY,
     }
 
+    # 默认测试所有
+    op_names = [
+        *REGISTRY.keys()
+    ]
+
     num_samples = 5
+
+    # 初始化日志
+    log_dir = join(abspath(dirname(dirname(abspath(__file__)))), "log")
+    logger = Logger(log_dir)
 
     # 解析命令
     if len(sys.argv) < 2:
-        print("没有提供要测试的算子名称和测试次数！将运行默认测试用例!")
+        logger.warning("没有提供要测试的算子名称和测试次数！将运行默认测试用例!")
     elif len(sys.argv) < 3:
-        print(f"没有提供测试次数！")
+        logger.warning(f"没有指定测试次数！默认每个项目测试{num_samples}次")
     else:
         op_names = sys.argv[1].split(",")
         not_implements = [op_name for op_name in op_names if op_name not in REGISTRY]
         if len(not_implements) > 0:
-            print(f"找不到算子{not_implements}，您确定在operation模块下实现并在OPERATION_REGISTRY中注册了它吗？")
+            logger.error(f"找不到算子{not_implements}，您确定在operation模块下实现并在OPERATION_REGISTRY中注册了它吗？")
             exit(-1)
         try:
             num_samples = int(sys.argv[2])
         except ValueError as e:
-            print("参数2必须是个整数！")
+            logger.error(f"参数2必须是个整数！而不是{sys.argv[2]}")
             exit(-1)
 
-    print("参数解析完成，开始实验，测试的算子有：")
-    print(op_names)
-    print(f"每个算子测试{num_samples}次")
+    logger.info(f"命令行参数解析完成，开始实验，测试的算子有：\n{op_names}")
+    logger.info(f"每个算子测试{num_samples}次")
+
+    # 开始主循环
     for op_name in op_names:
         op = REGISTRY[op_name]()
 
-        print(f"对算子{op_name}的实验开始!测试{num_samples}次!")
+        logger.info(f"对算子{op_name}的实验开始!测试{num_samples}次!")
         operation_monitor(
             op,
             op_name,
+            logger,
             num_samples,
         )
-        print(f"对算子{op_name}的{num_samples}次测试结束!")
-    print("实验结束！")
+        logger.info(f"对算子{op_name}的{num_samples}次测试结束!")
+    logger.info("实验结束！")
