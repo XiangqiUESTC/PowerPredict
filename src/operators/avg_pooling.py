@@ -51,10 +51,10 @@ class AdaptiveAvgPool2D(BaseProcessor):
             "output_size": (out_channels,H_out, W_out)
         }
 
-
         self.pool = nn.AvgPool2d(kernel_size=kernel_size,
                                 stride=stride,
                                 padding=padding)
+
     def setup(self):
         """根据配置生成输入张量"""
         C_in, H_in, W_in = self.config["tensor_shape"]
