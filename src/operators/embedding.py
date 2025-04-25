@@ -36,12 +36,12 @@ class Embedding(BaseProcessor):
         num_embeddings = self.config["num_embeddings"]
         embedding_dim = self.config["embedding_dim"]
         input_shape = self.config["input_shape"]
-        self.embedding = nn.Embedding(num_embeddings, embedding_dim).to("cuda")
+        self.embedding = nn.Embedding(num_embeddings, embedding_dim).to(self.device)
         self.input_tensor = torch.randint(
             low=0,
             high=num_embeddings,
             size=tuple(input_shape),
-            device="cuda",
+            device=self.device,
             dtype=torch.long
         )
 

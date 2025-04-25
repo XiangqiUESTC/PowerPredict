@@ -46,13 +46,11 @@ class Cat(BaseProcessor):
         for shape in tensor_shapes:
             if len(shape) != base_dims:
                 raise ValueError(f"维度不一致: {shape} (应为{base_dims}维)")
-        # 生成张量并确保在同一个设备上
-        device = next(self.parameters()).device if hasattr(self, 'parameters') else 'cuda'
         for shape in tensor_shapes:
             self.tensors.append(torch.randn(
                 shape,
                 dtype=torch.float32,
-                device=device
+                device=self.device
             ))
 
     def execute(self):

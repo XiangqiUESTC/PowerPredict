@@ -34,10 +34,10 @@ class NMS(BaseProcessor):
         y1 = torch.rand(num_boxes) * 512
         x2 = x1 + torch.rand(num_boxes) * 50 + 1  # 保证 x2 > x1
         y2 = y1 + torch.rand(num_boxes) * 50 + 1  # 保证 y2 > y1
-        self.boxes = torch.stack([x1, y1, x2, y2], dim=1).to("cuda")
+        self.boxes = torch.stack([x1, y1, x2, y2], dim=1).to(self.device)
 
         # 随机置信度分数
-        self.scores = torch.rand(num_boxes).to("cuda")
+        self.scores = torch.rand(num_boxes).to(self.device)
 
     def execute(self):
         # 返回的是保留框的索引

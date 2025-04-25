@@ -67,10 +67,10 @@ class Conv2D(BaseProcessor):
         self.input_tensor = torch.randn(
             (C_in, H_in, W_in),
             dtype=torch.float32,
-            device="cuda"
+            device=self.device
         )
         # 将卷积层移动到GPU
-        self.conv = self.conv.to('cuda')
+        self.conv = self.conv.to(self.device)
 
     def execute(self):
         """执行卷积操作"""

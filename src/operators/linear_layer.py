@@ -25,7 +25,7 @@ class LinearLayer(BaseProcessor):
             "out_channels": C_out          # 输出通道数（即 C_out）
         }
         # 初始化全连接层
-        self.linear = nn.Linear(C_in, C_out).to("cuda")
+        self.linear = nn.Linear(C_in, C_out).to(self.device)
 
     def setup(self):
         """根据配置生成输入张量"""
@@ -33,7 +33,7 @@ class LinearLayer(BaseProcessor):
         self.input_tensor = torch.randn(
             (C_in, 1, 1),  # 输入形状 (25088, 1, 1)
             dtype=torch.float32,
-            device="cuda"
+            device=self.device
         )
 
     def execute(self):

@@ -8,6 +8,7 @@ import random
 class MaxPool2D(BaseProcessor):
     def __init__(self):
         super().__init__()
+        self.pool = None
         self.input_tensor = None
         self.output_tensor = None
 
@@ -54,13 +55,14 @@ class MaxPool2D(BaseProcessor):
         self.pool = nn.MaxPool2d(kernel_size=kernel_size,
                                  stride=stride,
                                  padding=padding)
+        
     def setup(self):
         """根据配置生成输入张量"""
         C_in, H_in, W_in = self.config["tensor_shape"]
         self.input_tensor = torch.randn(
             (C_in, H_in, W_in),
             dtype=torch.float32,
-            device="cuda"
+            device=self.device
         )
 
     def execute(self):

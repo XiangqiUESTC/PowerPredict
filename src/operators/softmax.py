@@ -33,7 +33,7 @@ class Softmax(BaseProcessor):
         self.input_tensor = torch.randn(
             tensor_shape,
             dtype=torch.float,
-            device="cuda",
+            device=self.device,
             pin_memory=False
         )
 

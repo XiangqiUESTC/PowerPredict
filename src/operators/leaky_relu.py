@@ -17,11 +17,12 @@ class Leaky_ReLu(BaseProcessor):
         k = random.randint(MIN_DIM_NUM, MAX_DIM_NUM)
         arr = [random.randint(SINGLE_DIM_LENGTH_MIN, SINGLE_DIM_LENGTH_MAX) for _ in range(k)]
         self.config = {"tensor_shape": arr}
+
     def setup(self):
         self.input_tensor = torch.tensor(
             self.config["tensor_shape"],
             dtype=torch.float,
-            device="cuda"
+            device=self.device
         )
 
     def execute(self):

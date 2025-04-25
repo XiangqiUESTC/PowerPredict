@@ -2,10 +2,12 @@ import torch
 from core.base_processor import BaseProcessor
 import random
 
+
 class Flatten(BaseProcessor):
     def __init__(self):
         super().__init__()
         self.input_tensor = None
+
     def generate_config(self):
         # 最大维数
         MAX_DIM_NUM = 4
@@ -32,6 +34,7 @@ class Flatten(BaseProcessor):
         self.input_tensor = torch.randn(
             tensor_shape,
             dtype=torch.float,
-            device="cuda")
+            device=self.device)
+
     def execute(self):
         return torch.flatten(self.input_tensor, start_dim=self.config["start_dim"], end_dim=self.config["end_dim"])

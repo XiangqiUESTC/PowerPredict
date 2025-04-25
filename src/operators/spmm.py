@@ -54,9 +54,9 @@ class Spmm(BaseProcessor):
         # 构造对应的非零值
         values = torch.randn(nnz)
         # 构造稀疏矩阵 A，大小为 [m, p]
-        self.A = torch.sparse_coo_tensor(indices, values, size=(m, p)).coalesce()
+        self.A = torch.sparse_coo_tensor(indices, values, size=(m, p)).coalesce().to(self.device)
         # 构造稠密矩阵 B，大小为 [p, n]
-        self.B = torch.randn(p, n)
+        self.B = torch.randn(p, n).to(self.device)
 
     def execute(self):
         return torch.sparse.mm(self.A, self.B)

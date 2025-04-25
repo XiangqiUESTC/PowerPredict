@@ -33,13 +33,13 @@ class Add(BaseProcessor):
         self.A = torch.randn(
             tensor_shape,
             dtype=torch.float,
-            device="cuda",
+            device=self.device,
             pin_memory=False
         )
         self.B = torch.randn(
             tensor_shape,
             dtype=torch.float,
-            device="cuda",
+            device=self.device,
             pin_memory=False
         )
 

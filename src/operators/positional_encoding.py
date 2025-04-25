@@ -11,7 +11,6 @@ class PositionalEncoding(BaseProcessor):
         self.encoding = None
         self.seq_len = None
         self.d_model = None
-        self.device = "cuda"
 
     def generate_config(self):
         # 序列长度与嵌入维度

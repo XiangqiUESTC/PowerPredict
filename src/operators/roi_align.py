@@ -43,7 +43,7 @@ class RoIAlign(BaseProcessor):
         self.aligned = self.config["aligned"]
 
         # 特征图
-        self.feature_map = torch.randn(B, C, H, W, device="cuda")
+        self.feature_map = torch.randn(B, C, H, W, device=self.device)
 
         # 随机生成 roi：[batch_idx, x1, y1, x2, y2]
         rois = []
@@ -54,7 +54,7 @@ class RoIAlign(BaseProcessor):
             x2 = random.uniform(x1 + 1, W)
             y2 = random.uniform(y1 + 1, H)
             rois.append([batch_idx, x1, y1, x2, y2])
-        self.rois = torch.tensor(rois, dtype=torch.float32, device="cuda")
+        self.rois = torch.tensor(rois, dtype=torch.float32, device=self.device)
 
     def execute(self):
         return roi_align(

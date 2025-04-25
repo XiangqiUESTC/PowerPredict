@@ -23,7 +23,7 @@ class ELU(BaseProcessor):
         self.input_tensor = torch.tensor(
             self.config["tensor_shape"],
             dtype=torch.float,
-            device="cuda"
+            device=self.device
         )
 
     def execute(self):

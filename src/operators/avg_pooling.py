@@ -61,7 +61,7 @@ class AdaptiveAvgPool2D(BaseProcessor):
         self.input_tensor = torch.randn(
             (C_in, H_in, W_in),
             dtype=torch.float32,
-            device="cuda"
+            device=self.device
         )
 
     def execute(self):

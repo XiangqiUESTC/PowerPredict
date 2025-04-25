@@ -28,21 +28,20 @@ class Mat(BaseProcessor):
             "output_shape": output_dim
         }
 
-
     def setup(self):
         """生成输入张量"""
         M, K = self.config["mat1_shape"]
-        K, N  = self.config["mat2_shape"]
+        K, N = self.config["mat2_shape"]
         self.mat1 = torch.randn(
             M, K,
             dtype=torch.float32,
-            device="cuda"
+            device=self.device
         )
         # 初始化矩阵2
         self.mat2 = torch.randn(
             K, N,
             dtype=torch.float32,
-            device="cuda"
+            device=self.device
         )
 
     def execute(self):

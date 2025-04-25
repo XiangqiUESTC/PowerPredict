@@ -37,11 +37,11 @@ class LayerNorm(BaseProcessor):
     def setup(self):
         tensor_shape = self.config["tensor_shape"]
         normalized_shape = self.config["normalized_shape"]
-        self.norm_layer = nn.LayerNorm(normalized_shape).to("cuda")
+        self.norm_layer = nn.LayerNorm(normalized_shape).to(self.device)
         self.input_tensor = torch.randn(
             tensor_shape,
             dtype=torch.float,
-            device="cuda",
+            device=self.device,
             pin_memory=False
         )
 

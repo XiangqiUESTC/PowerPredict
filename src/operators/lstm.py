@@ -50,11 +50,12 @@ class LSTM(BaseProcessor):
             num_layers=num_layers,
             batch_first=batch_first,
             bidirectional=bidirectional
-        ).to("cuda")
+        ).to(self.device)
         self.input_tensor = torch.randn(
-            *input_shape,# "input_shape": [batch_size, seq_len, input_size],
+            # "input_shape": [batch_size, seq_len, input_size],
+            *input_shape,
             dtype=torch.float32,
-            device="cuda"
+            device=self.device
         )
 
     def execute(self):
