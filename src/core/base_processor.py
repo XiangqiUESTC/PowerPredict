@@ -8,8 +8,10 @@ class BaseProcessor(ABC):
         算子基本类，抽象方法
     """
     def __init__(self):
+        # 默认均有config属性
         self.config = None
-        self.device = torch.device("cuda" if torch.cuda.is_available() else "cpu")  # 统一设备管理
+        # 统一设备管理
+        self.device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
 
     @abstractmethod
     def generate_config(self):
