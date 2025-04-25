@@ -89,17 +89,6 @@ class Vgg(BaseProcessor):
             raise ImportError(f"当前torchvision版本不支持该模型: {str(e)}") from e
 
     def execute(self):
-        self.model.eval()  # 确保评估模式
-
+        # 确保评估模式
+        self.model.eval()
         return self.model(self.data)
-
-
-if __name__ == "__main__":
-    model = Vgg()
-    model.generate_config()
-    model.setup()
-    rst = model.execute()
-    print(rst)
-    print(rst.shape)
-    print(torch.argmax(rst, dim=1))
-    print(model.config)

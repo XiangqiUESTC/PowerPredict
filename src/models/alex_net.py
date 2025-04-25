@@ -59,17 +59,6 @@ class AlexNet(BaseProcessor):
         self.data = self.data.to(self.device)
 
     def execute(self):
-        self.model.eval()  # 确保评估模式
-
+        # 确保评估模式
+        self.model.eval()
         return self.model(self.data)
-
-
-if __name__ == "__main__":
-    model = AlexNet()
-    model.generate_config()
-    model.setup()
-    rst = model.execute()
-    print(rst)
-    print(rst.shape)
-    print(torch.argmax(rst, dim=1))
-    print(model.config)
