@@ -20,7 +20,7 @@ class Vgg(BaseProcessor):
         self.dataset_name = 'cifar10'
 
     def generate_config(self):
-        """生成支持动态尺寸的配置"""
+        """生成支持224x224的尺寸"""
         vgg_versions = ['vgg11', 'vgg13', 'vgg16', 'vgg19']
         BATCH_SIZE_MAX = 256
         BATCH_SIZE_MIN = 1
@@ -37,12 +37,11 @@ class Vgg(BaseProcessor):
             "input_shape": [1, 3, 224, 224],  # 修正为CHW格式
             "model_version": random.choice(vgg_versions),
             "pretrained": random.choice([True, False]),
-            "batch_norm": random.choice([True, False]),
             "num_classes": self.num_classes
         })
 
     def setup(self):
-        """支持动态尺寸的初始化"""
+        """生成支持224x224的尺寸的初始化模型"""
         batch_size = self.config["batch_size"]
         # 加载数据集
         self.data_loader = load_dataset(self.dataset_name, batch_size)

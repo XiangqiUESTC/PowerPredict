@@ -33,9 +33,8 @@ class AlexNet(BaseProcessor):
 
         # 更新输入形状为合法格式
         self.config.update({
-            "input_shape": [3, 224, 224],  # 修正为CHW格式
+            "input_shape": [1, 3, 224, 224],  # 修正为CHW格式
             "pretrained": random.choice([True, False]),
-            "batch_norm": random.choice([True, False]),
             "num_classes": self.num_classes
         })
 

@@ -308,4 +308,6 @@ if __name__ == '__main__':
             num_samples,
         )
         logger.info(f"对算子{op_name}的{num_samples}次测试结束!")
+        logger.info("------------------------------------------------------------------------")#分割
+
     logger.info("实验结束！")
