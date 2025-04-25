@@ -240,8 +240,7 @@ def operation_monitor(operation, operation_name, l, num_sample=1, loop_per_sampl
                 # 第一次的时候需要初始化
                 if key not in records:
                     records[key] = []
-                else:
-                    records[key].append(value)
+                records[key].append(value)
 
     # 开始写最终的数据
     result_file = join(result_dir, file_name)
