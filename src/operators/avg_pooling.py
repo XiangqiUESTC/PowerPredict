@@ -30,7 +30,7 @@ class AdaptiveAvgPool2D(BaseProcessor):
 
         # 生成合法池化参数（确保输出尺寸 ≥1）
         while True:
-            kernel_size = random.choice([1, 2, 3,4])
+            kernel_size = random.choice([1, 2, 3, 4])
             max_padding = kernel_size // 2
             padding = random.randint(0, max_padding)
             stride = random.randint(1, kernel_size + 2 * padding)
@@ -48,12 +48,12 @@ class AdaptiveAvgPool2D(BaseProcessor):
             "kernel_size": kernel_size,
             "stride": stride,
             "padding": padding,
-            "output_size": (out_channels,H_out, W_out)
+            "output_size": (out_channels, H_out, W_out)
         }
 
         self.pool = nn.AvgPool2d(kernel_size=kernel_size,
-                                stride=stride,
-                                padding=padding)
+                                 stride=stride,
+                                 padding=padding)
 
     def setup(self):
         """根据配置生成输入张量"""
@@ -67,8 +67,6 @@ class AdaptiveAvgPool2D(BaseProcessor):
     def execute(self):
         """执行自适应平均池化操作"""
         input_with_batch = self.input_tensor.unsqueeze(0)  # 添加 batch 维度
-        output = self.pool(input_with_batch)               # 自动调整池化窗口大小和步长
-        self.output_tensor = output.squeeze(0)             # 移除 batch 维度
+        output = self.pool(input_with_batch)  # 自动调整池化窗口大小和步长
+        self.output_tensor = output.squeeze(0)  # 移除 batch 维度
         return self.output_tensor
-
-
