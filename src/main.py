@@ -274,7 +274,7 @@ if __name__ == '__main__':
         *REGISTRY.keys()
     ]
 
-    num_samples = 5
+    num_samples = 3
 
     # 初始化日志
     log_dir = join(abspath(dirname(dirname(abspath(__file__)))), "log")
