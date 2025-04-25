@@ -157,13 +157,17 @@ def operation_monitor(operation, operation_name, l, num_sample=1, loop_per_sampl
         # cpu_thread = threading.Thread(target=cpu_monitor_thread_func, args=(cpu_log, stop_cpu, l))
         # cpu_thread.start()
 
-        nanoseconds = time.time_ns()
-        start_time = nanoseconds // 1_000_000
+        # 记录时间戳
+        start_time = datetime.now().isoformat()
+        # 记录持续时间（毫秒）
+        start_time_ns = time.time_ns()
         # 重复执行，不断采样
         for _ in range(loop_per_sample):
             operation.execute()
-        nanoseconds = time.time_ns()
-        end_time = nanoseconds // 1_000_000
+        # 记录时间戳
+        end_time_ns = time.time_ns()
+        # 记录持续时间（毫秒）
+        end_time = datetime.now().isoformat()
 
         # Todo 此处执行完之后为什么不立刻停止线程？不怕采集到非算子运行时的数据吗？
         # 保证采样完整
@@ -207,10 +211,12 @@ def operation_monitor(operation, operation_name, l, num_sample=1, loop_per_sampl
             'max_gpu_mem': max_mem,
         }
         # 计算时间
-        duration = round((end_time - start_time)/loop_per_sample, 2)
+        duration = round((end_time_ns - start_time_ns)/loop_per_sample, 2)
 
         other_data = {
-            "duration": duration
+            "duration": duration,
+            "start_time": start_time,
+            "end_time": end_time,
         }
 
         test_config = op.config
