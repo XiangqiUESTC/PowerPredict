@@ -22,7 +22,7 @@ class Vgg(BaseProcessor):
     def generate_config(self):
         """生成支持224x224的尺寸"""
         vgg_versions = ['vgg11', 'vgg13', 'vgg16', 'vgg19']
-        BATCH_SIZE_MAX = 256
+        BATCH_SIZE_MAX = 32
         BATCH_SIZE_MIN = 1
         # 选择数据大小批次
         batch_size = random.randint(BATCH_SIZE_MIN, BATCH_SIZE_MAX)
