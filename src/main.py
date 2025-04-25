@@ -240,7 +240,7 @@ def operation_monitor(operation, operation_name, l, num_sample=1, loop_per_sampl
         # }
 
         # 解析数据字典
-        dictionaries = [test_config, gpu_data, other_data]
+        dictionaries = [test_config, other_data]
         for dictionary in dictionaries:
             for key, value in dictionary.items():
                 # 第一次的时候需要初始化
