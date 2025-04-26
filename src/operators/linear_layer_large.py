@@ -5,14 +5,14 @@ import torch.nn as nn
 from core.base_processor import BaseProcessor
 
 
-class LinearLayer(BaseProcessor):
+class LinearLayerLarge(BaseProcessor):
     def __init__(self):
         super().__init__()
         self.input_tensor = None
         self.output_tensor = None
         self.linear = None  # 全连接层
 
-    def generate_config(self, C_in_max=25088, C_out_max=4096):
+    def generate_config(self, C_in_max=150000, C_out_max=150000):
         """
         生成全连接层的配置参数：
         - 输入形状: (C_in, 1, 1)（假设输入已被展平）

@@ -5,6 +5,9 @@ import threading
 import subprocess
 import csv
 from datetime import datetime
+
+import torch
+
 from operators import *
 from models import *
 import os
@@ -76,24 +79,37 @@ def operation_monitor(operation, operation_name, l, num_sample=1, loop_per_sampl
         except Exception as error:
             l.error(error)
 
+
         # 预热GPU
-        time.sleep(2)
-        for _ in range(preheat):
-            try:
-                operation.execute()
-            except Exception as error:
-                l.error(error)
+        try:
+            # 创建两个随机矩阵（尺寸可根据需要调整）
+            a = torch.randn(100, 100).to(torch.device("cuda" if torch.cuda.is_available() else "cpu"))  # 100x100矩阵
+            b = torch.randn(100, 100).to(torch.device("cuda" if torch.cuda.is_available() else "cpu"))
+            # 执行矩阵乘法 → 触发CUDA核函数
+            c = torch.matmul(a, b)  # 结果矩阵 100x100
+
+
+        except Exception as error:
+            l.error(f"预热失败: {str(error)}")
+            torch.cuda.empty_cache()  # 显存异常时清空缓存
+            continue
 
         # 记录时间戳
         start_time = datetime.now().isoformat()
         # 记录持续时间（毫秒）
         start_time_ns = time.time_ns()
         # 重复执行，不断采样
+        f = False
         for _ in range(loop_per_sample):
             try:
                 operation.execute()
             except Exception as error:
                 l.error(error)
+                f = True
+                torch.cuda.empty_cache()  # 释放缓存
+                break#跳出
+        if f == True:
+            continue #此次error，
         # 记录时间戳
         end_time_ns = time.time_ns()
         # 记录持续时间（毫秒）
@@ -184,6 +200,6 @@ if __name__ == '__main__':
             num_samples,
         )
         logger.info(f"对算子{op_name}的{num_samples}次测试结束!")
-        logger.info("---------------------------------------------------------------------------------------------------------")#分割
+        logger.info("--------------------------------------------------------------------------------------------------------------------------------------")#分割
 
     logger.info("实验结束！")

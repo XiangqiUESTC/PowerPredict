@@ -8,6 +8,8 @@ from .relu import ReLU
 from .silu import SiLU
 from .leaky_relu import Leaky_ReLu
 from .mat import Mat
+from .conv_large import Conv2DLarge
+from .linear_layer_large import LinearLayerLarge
 
 from .spmm import Spmm
 from .flatten import Flatten
@@ -35,6 +37,8 @@ OPERATOR_REGISTRY = {
     "silu": SiLU,
     "leaky_relu": Leaky_ReLu,
     "mat": Mat,
+    "conv_large": Conv2DLarge,
+    "linear_layer_large": LinearLayerLarge,
 
     "spmm": Spmm,
     "flatten": Flatten,
