@@ -24,7 +24,6 @@ class AlexNet(BaseProcessor):
         # 选择数据大小批次
         batch_size = random.randint(BATCH_SIZE_MIN, BATCH_SIZE_MAX)
         self.config["batch_size"] = batch_size
-
         # 从可用数据集中随机选择一个数据集
         dataset = ["cifar10", "flowers102"]
 

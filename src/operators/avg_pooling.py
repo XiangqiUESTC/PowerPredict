@@ -13,47 +13,30 @@ class AdaptiveAvgPool2D(BaseProcessor):
 
     def generate_config(self):
         """
-        生成随机池化层的合法参数组合：
-        - 输入尺寸 (C_in, H_in, W_in)
-        - 池化参数：kernel_size, stride, padding（符合实际运算规则）
-        - 池化类型：AvgPool2d
+        生成合法的自适应池化配置：
+        - 随机生成输入尺寸（C_in, H_in, W_in）
+        - 随机生成目标输出尺寸（H_out, W_out）
         """
-        # 随机选择输入输出通道数（允许不同）
-        in_channels_list = [3, 16, 32, 64, 128, 256]
-        in_channels = random.choice(in_channels_list)
-        out_channels = in_channels  # 允许与输入通道数不同
+        in_channels = random.choice([3, 16, 32, 64, 128, 256])
 
         # 随机生成输入尺寸（H_in, W_in）
-        heights = [32, 64, 128, 256, 512, 768, 1024]
-        widths = [32, 64, 128, 256, 512, 768, 1024]
-        H_in, W_in = random.sample(heights + widths, 2)
+        input_heights = [32, 64, 128, 224, 256, 512, 768, 1024]
+        input_widths = [32, 64, 128, 224,256, 512, 768, 1024]
+        H_in, W_in = random.choice(input_heights), random.choice(input_widths)
 
-        # 生成合法池化参数（确保输出尺寸 ≥1）
+        # 随机生成输出尺寸（确保合法）
         while True:
-            kernel_size = random.choice([1, 2, 3, 4])
-            max_padding = kernel_size // 2
-            padding = random.randint(0, max_padding)
-            stride = random.randint(1, kernel_size + 2 * padding)
-
-            # 计算输出尺寸
-            H_out = (H_in + 2 * padding - kernel_size) // stride + 1
-            W_out = (W_in + 2 * padding - kernel_size) // stride + 1
-
-            # 验证输出尺寸有效性
-            if H_out >= 1 and W_out >= 1:
+            H_out = random.choice([1, 2, 4, 8, 16, 32, 64])
+            W_out = random.choice([1, 2, 4, 8, 16, 32, 64])
+            # 确保输出尺寸不超过输入尺寸
+            if H_out <= H_in and W_out <= W_in:
                 break
-
         self.config = {
             "tensor_shape": (in_channels, H_in, W_in),
-            "kernel_size": kernel_size,
-            "stride": stride,
-            "padding": padding,
-            "output_size": (out_channels, H_out, W_out)
+            "output_size": (H_out, W_out)  # 核心修改：直接指定目标输出尺寸
         }
-
-        self.pool = nn.AvgPool2d(kernel_size=kernel_size,
-                                 stride=stride,
-                                 padding=padding)
+        # 使用PyTorch原生自适应池化层
+        self.pool = nn.AdaptiveAvgPool2d(output_size=(H_out, W_out))
 
     def setup(self):
         """根据配置生成输入张量"""
@@ -65,8 +48,8 @@ class AdaptiveAvgPool2D(BaseProcessor):
         )
 
     def execute(self):
-        """执行自适应平均池化操作"""
+        """执行自适应平均池化操作（无需手动调整参数）"""
         input_with_batch = self.input_tensor.unsqueeze(0)  # 添加 batch 维度
-        output = self.pool(input_with_batch)  # 自动调整池化窗口大小和步长
+        output = self.pool(input_with_batch)  # PyTorch自动处理参数
         self.output_tensor = output.squeeze(0)  # 移除 batch 维度
         return self.output_tensor
