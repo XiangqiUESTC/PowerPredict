@@ -10,7 +10,8 @@ class Conv2DLarge(BaseProcessor):
         self.input_tensor = None
         self.output_tensor = None
         self.conv = None  # 卷积层
-
+        self.iterNumber = 1
+        self.basicNumber = 128
     def generate_config(self):
         """
         生成随机卷积层的合法参数组合：
@@ -19,15 +20,22 @@ class Conv2DLarge(BaseProcessor):
         - 输出形状: (C_out, H_out, W_out)
         """
         # 随机选择输入输出通道数
-        in_channels_list = [256, 512, 768, 1024]
+        # in_channels_list = [256, 512, 768, 1024]
+        in_channels_list = [256]
+
         C_in = random.choice(in_channels_list)
-        out_channels_list = [256, 512, 768, 1024]
+        # out_channels_list = [256, 512, 768, 1024]
+        out_channels_list = [256]
         C_out = random.choice(out_channels_list)
 
         # 随机生成输入尺寸 (H_in, W_in)
-        heights = [256, 512,1024, 2048, 3072, 4096]
-        widths = [256, 512,1024, 2048, 3072, 4096]
-        H_in, W_in = random.sample(heights + widths, 2)
+        # heights = [256, 512,1024, 2048, 3072, 4096]
+        # widths = [256, 512,1024, 2048, 3072, 4096]
+        self.iterNumber += 1
+        H_in = self.basicNumber  * ((self.iterNumber + 1) // 2 )
+        W_in = self.basicNumber  * (self.iterNumber // 2 )
+
+        # H_in, W_in = random.sample(heights + widths, 2)
 
         # 生成合法卷积参数（确保输出尺寸 ≥1）
         while True:

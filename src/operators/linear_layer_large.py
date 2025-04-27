@@ -11,15 +11,21 @@ class LinearLayerLarge(BaseProcessor):
         self.input_tensor = None
         self.output_tensor = None
         self.linear = None  # 全连接层
-
+        self.iterNumber = 1#迭代次数
+        self.basicNumber = 2000#基本增长单位
     def generate_config(self, C_in_max=150000, C_out_max=150000):
         """
         生成全连接层的配置参数：
         - 输入形状: (C_in, 1, 1)（假设输入已被展平）
         - 输出形状: (C_out)
         """
-        C_in = random.randint(1,C_in_max)
-        C_out = random.randint(1,C_out_max)
+        # C_in = random.randint(1,C_in_max)
+        # C_out = random.randint(1,C_out_max)
+        self.iterNumber += 1
+
+        C_in =  self.basicNumber * ((self.iterNumber + 1) // 2 )
+        C_out = self.basicNumber * (self.iterNumber  // 2 )
+
         self.config = {
             "tensor_shape": (C_in, 1, 1),  # 输入形状 (C_in, 1, 1)
             "out_channels": C_out          # 输出通道数（即 C_out）
