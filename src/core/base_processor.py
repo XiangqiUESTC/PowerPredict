@@ -18,8 +18,8 @@ class BaseProcessor(ABC):
         # 日志记录器
         self.logger = logger
 
-        # 默认均有config属性
-        self.config = self._load_config()
+        # 配置生成器的属性
+        self.generator_config = self._load_config()
 
         # 统一设备管理
         self.device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
