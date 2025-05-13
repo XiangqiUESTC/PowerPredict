@@ -1,0 +1,9 @@
+mode: "increase"
+
+increase:
+  step_increment: 32
+  sparsity: 0.075
+
+random:
+  max_sparsity: 0.6
+  min_sparsity: 0.01

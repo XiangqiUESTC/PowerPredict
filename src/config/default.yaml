@@ -1,0 +1,14 @@
+mode: "random"
+
+increase:
+  step_increment: 64
+  start_size: 256
+  max_size: 2048
+
+
+random:
+  single_dim_max_size: 512
+  single_dim_min_size: 1
+  max_dim_num: 4
+  min_dim_num: 1
+
