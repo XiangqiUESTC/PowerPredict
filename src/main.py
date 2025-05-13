@@ -1,4 +1,5 @@
 import sys
+from copy import deepcopy
 from os.path import dirname, join, abspath
 import time
 import threading
@@ -140,23 +141,35 @@ if __name__ == '__main__':
     # 初始化日志
     log_dir = join(abspath(dirname(dirname(abspath(__file__)))), "log")
     logger = Logger(log_dir)
+    
+    # 解析命令行中的名称参数
+    argv = deepcopy(sys.argv)
+    args = {}
+    # 解析所有--key=value的命令行参数，并将其从命令行参数中删掉，保存在字典arg_dict中
+    for i, arg in enumerate(argv[1:]):
+        if arg.startswith("--"):
+            splits = arg[2:].split("=")
+            key = splits[0]
+            value = splits[1]
+            args[key] = value
+            del argv[i+1]
 
     # 解析命令
-    if len(sys.argv) < 2:
+    if len(argv) < 2:
         logger.warning("没有提供要测试的算子名称和测试次数！将运行默认测试用例!")
-    elif len(sys.argv) < 3:
+    elif len(argv) < 3:
         logger.warning(f"没有指定测试次数！默认每个项目测试{num_samples}次")
     else:
-        op_names = sys.argv[1].split(",")
+        op_names = argv[1].split(",")
         not_implements = [op_name for op_name in op_names if op_name not in REGISTRY]
         if len(not_implements) > 0:
             logger.error(f"找不到算子或模型{not_implements}，您确定在operator或models模块下实现"
                          f"并在OPERATOR_REGISTRY或MODEL_REGISTRY中注册了它吗？")
             exit(-1)
         try:
-            num_samples = int(sys.argv[2])
+            num_samples = int(argv[2])
         except ValueError as e:
-            logger.error(f"参数2必须是个整数！而不是{sys.argv[2]}")
+            logger.error(f"参数2必须是个整数！而不是{argv[2]}")
             exit(-1)
 
     logger.info(f"命令行参数解析完成，开始实验，测试的算子或模型有：\n{op_names}")
@@ -164,7 +177,7 @@ if __name__ == '__main__':
 
     # 开始主循环
     for op_name in op_names:
-        op = REGISTRY[op_name](logger)
+        op = REGISTRY[op_name](args, logger)
 
         logger.info(f"对{op_name}的实验开始!测试{num_samples}次!")
         logger.info(f"默认设备是{op.device}")
