@@ -19,8 +19,7 @@ class BaseProcessor(ABC):
         self.logger = logger
 
         # 默认均有config属性
-        self.config = None
-        self.load_config()
+        self.config = self._load_config()
 
         # 统一设备管理
         self.device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
@@ -43,7 +42,7 @@ class BaseProcessor(ABC):
             执行操作
         """
 
-    def load_config(self):
+    def _load_config(self):
         """
             加载默认的配置
         """
