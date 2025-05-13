@@ -6,8 +6,8 @@ import random
 
 
 class MaxPool2D(BaseProcessor):
-    def __init__(self, logger):
-        super().__init__(logger)
+    def __init__(self, args, logger):
+        super().__init__(args, logger)
         self.pool = None
         self.input_tensor = None
         self.output_tensor = None

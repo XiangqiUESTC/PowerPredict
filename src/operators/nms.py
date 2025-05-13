@@ -6,8 +6,8 @@ from torchvision.ops import nms
 
 
 class NMS(BaseProcessor):
-    def __init__(self, logger):
-        super().__init__(logger)
+    def __init__(self, args, logger):
+        super().__init__(args, logger)
         self.boxes = None
         self.scores = None
         self.iou_threshold = None

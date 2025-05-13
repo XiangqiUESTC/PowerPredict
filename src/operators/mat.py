@@ -4,8 +4,8 @@ import random
 
 
 class Mat(BaseProcessor):
-    def __init__(self, logger):
-        super().__init__(logger)
+    def __init__(self, args, logger):
+        super().__init__(args, logger)
         self.mat1 = None
         self.mat2 = None  # 相当于另一个矩阵
         self.output_tensor = None

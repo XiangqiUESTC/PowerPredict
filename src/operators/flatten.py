@@ -4,8 +4,8 @@ import random
 
 
 class Flatten(BaseProcessor):
-    def __init__(self, logger):
-        super().__init__(logger)
+    def __init__(self, args, logger):
+        super().__init__(args, logger)
         self.input_tensor = None
 
     def generate_config(self):

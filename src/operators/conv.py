@@ -5,8 +5,8 @@ from core.base_processor import BaseProcessor
 
 
 class Conv2D(BaseProcessor):
-    def __init__(self, logger):
-        super().__init__(logger)
+    def __init__(self, args, logger):
+        super().__init__(args, logger)
         self.input_tensor = None
         self.output_tensor = None
         self.conv = None  # 卷积层

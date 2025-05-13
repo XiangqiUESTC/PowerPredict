@@ -6,8 +6,8 @@ import torch
 
 
 class PositionalEncoding(BaseProcessor):
-    def __init__(self, logger):
-        super().__init__(logger)
+    def __init__(self, args, logger):
+        super().__init__(args, logger)
         self.encoding = None
         self.seq_len = None
         self.d_model = None

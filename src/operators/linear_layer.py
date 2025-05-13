@@ -6,8 +6,8 @@ from core.base_processor import BaseProcessor
 
 
 class LinearLayer(BaseProcessor):
-    def __init__(self, logger):
-        super().__init__(logger)
+    def __init__(self, args, logger):
+        super().__init__(args, logger)
         self.input_tensor = None
         self.output_tensor = None
         self.linear = None  # 全连接层

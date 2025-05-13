@@ -4,8 +4,8 @@ import torch
 
 
 class Add(BaseProcessor):
-    def __init__(self, logger):
-        super().__init__(logger)
+    def __init__(self, args, logger):
+        super().__init__(args, logger)
         self.A = None
         self.B = None
 

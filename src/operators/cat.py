@@ -4,8 +4,9 @@ import random
 
 
 class Cat(BaseProcessor):
-    def __init__(self, logger):
-        super().__init__(logger)
+    def __init__(self, args, logger):
+        super().__init__(args, logger)
+        self.logger = logger
         self.tensors = []
 
     def generate_config(self):

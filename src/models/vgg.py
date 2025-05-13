@@ -6,8 +6,8 @@ from dataset.dataset import *
 
 
 class Vgg(BaseProcessor):
-    def __init__(self, logger, num_classes=1000):
-        super().__init__(logger)
+    def __init__(self, args, logger, num_classes=1000):
+        super().__init__(args, logger)
         self.num_classes = num_classes
         self.model = None
         self.input_tensor = None
