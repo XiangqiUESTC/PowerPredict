@@ -4,8 +4,8 @@ import random
 
 
 class ELU(BaseProcessor):
-    def __init__(self, alpha=1.0):
-        super().__init__()
+    def __init__(self, logger, alpha=1.0):
+        super().__init__(logger)
         self.alpha = alpha  # 控制负值区域的缩放因子
         self.input_tensor = None
         self.output_tensor = None

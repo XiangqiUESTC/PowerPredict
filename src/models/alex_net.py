@@ -8,8 +8,8 @@ from dataset.dataset import *
 
 
 class AlexNet(BaseProcessor):
-    def __init__(self, num_classes=1000):
-        super().__init__()
+    def __init__(self, logger, num_classes=1000):
+        super().__init__(logger)
         self.model = None
         self.data = None
         self.data_loader = None

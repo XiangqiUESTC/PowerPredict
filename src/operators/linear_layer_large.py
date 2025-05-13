@@ -6,13 +6,14 @@ from core.base_processor import BaseProcessor
 
 
 class LinearLayerLarge(BaseProcessor):
-    def __init__(self):
-        super().__init__()
+    def __init__(self, logger):
+        super().__init__(logger)
         self.input_tensor = None
         self.output_tensor = None
         self.linear = None  # 全连接层
         self.iterNumber = 1#迭代次数
         self.basicNumber = 2000#基本增长单位
+
     def generate_config(self, C_in_max=150000, C_out_max=150000):
         """
         生成全连接层的配置参数：

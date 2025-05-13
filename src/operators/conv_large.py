@@ -5,13 +5,14 @@ from core.base_processor import BaseProcessor
 
 
 class Conv2DLarge(BaseProcessor):
-    def __init__(self):
-        super().__init__()
+    def __init__(self, logger):
+        super().__init__(logger)
         self.input_tensor = None
         self.output_tensor = None
         self.conv = None  # 卷积层
         self.iterNumber = 1
         self.basicNumber = 128
+
     def generate_config(self):
         """
         生成随机卷积层的合法参数组合：

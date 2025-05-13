@@ -10,8 +10,8 @@ class Spmm(BaseProcessor):
     """
         稀疏矩阵乘法算子
     """
-    def __init__(self):
-        super().__init__()
+    def __init__(self, logger):
+        super().__init__(logger)
         self.B = None
         self.A = None
 
