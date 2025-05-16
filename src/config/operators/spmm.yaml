@@ -2,7 +2,9 @@ mode: "random"
 
 increase:
   step_increment: 32
-  sparsity: 0.075
+  start_sparsity: 0.075
+  sparsity_max: 0.5
+  sparsity_increment: 0.005
   m: 64
   n: 64
   p: 32

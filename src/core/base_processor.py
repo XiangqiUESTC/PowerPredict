@@ -4,6 +4,7 @@ from pathlib import Path
 from abc import ABC, abstractmethod
 from os.path import dirname
 from utils.config_loader import load_config
+from types import SimpleNamespace as SN
 
 import torch
 
@@ -19,7 +20,7 @@ class BaseProcessor(ABC):
         self.logger = logger
 
         # 配置生成器的属性
-        self.generator_config = self._load_config()
+        self.generator_config = SN(**self._load_config())
 
         # 默认有config属性
         self.config = None
