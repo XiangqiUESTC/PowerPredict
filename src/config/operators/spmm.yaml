@@ -1,4 +1,4 @@
-mode: "increase"
+mode: "random"
 
 increase:
   step_increment: 32
