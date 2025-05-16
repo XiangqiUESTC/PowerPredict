@@ -3,6 +3,9 @@ mode: "random"
 increase:
   step_increment: 32
   sparsity: 0.075
+  m: 64
+  n: 64
+  p: 32
 
 random:
   max_sparsity: 0.6
