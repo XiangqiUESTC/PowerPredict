@@ -1,13 +1,13 @@
 mode: "random"
 
 increase:
-  step_increment: 32
-  start_sparsity: 0.075
+  step_increment: 256
+  start_sparsity: 0.01
   sparsity_max: 0.5
-  sparsity_increment: 0.005
-  m: 64
-  n: 64
-  p: 32
+  sparsity_increment: 0.01
+  m: 512
+  n: 512
+  p: 512
 
 random:
   max_sparsity: 0.6
