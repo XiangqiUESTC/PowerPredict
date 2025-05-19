@@ -16,7 +16,7 @@ from utils.logger import Logger
 from utils.csv_utils import write_csv
 
 
-def operation_monitor(operation, operation_name, l, num_sample=1, loop_per_sample=64, preheat=8):
+def operation_monitor(operation, operation_name, l, num_sample=1, loop_per_sample=64, preheat=80):
     """
     ARGS:
         operation: operation是基本的算子,同时是base_operation的实现类的实例对象
@@ -44,78 +44,83 @@ def operation_monitor(operation, operation_name, l, num_sample=1, loop_per_sampl
     # 最终结果
     records = {}
     # 循环num_sample次
-    for i in range(num_sample):
-        # 开始测试
-        l.info(f"Test Case {i + 1} for {op_name}: Starting monitoring and computation...")
-        # 生成此次测试的配置
-        _ = operation.generate_config()
-        # 装配数据
-        try:
-            operation.setup()
-        except Exception as error:
-            l.error(error)
-
-
-        # 预热GPU
-        try:
-            # 创建两个随机矩阵（尺寸可根据需要调整）
-            a = torch.randn(100, 100).to(torch.device("cuda" if torch.cuda.is_available() else "cpu"))  # 100x100矩阵
-            b = torch.randn(100, 100).to(torch.device("cuda" if torch.cuda.is_available() else "cpu"))
-            # 执行矩阵乘法 → 触发CUDA核函数
-            c = torch.matmul(a, b)  # 结果矩阵 100x100
-
-
-        except Exception as error:
-            l.error(f"预热失败: {str(error)}")
-            torch.cuda.empty_cache()  # 显存异常时清空缓存
-            continue
-
-        # 记录时间戳
-        start_time = datetime.now().isoformat()
-        # 记录持续时间（毫秒）
-        start_time_ns = time.time_ns()
-        # 重复执行，不断采样
-        f = False
-        for _ in range(loop_per_sample):
+    try:
+        for i in range(num_sample):
+            # 开始测试
+            l.info(f"Test Case {i + 1} for {op_name}: Starting monitoring and computation...")
+            # 生成此次测试的配置
+            _ = operation.generate_config()
+            # 装配数据
             try:
-                operation.execute()
+                operation.setup()
             except Exception as error:
                 l.error(error)
-                f = True
-                torch.cuda.empty_cache()  # 释放缓存
-                break#跳出
-        if f == True:
-            continue #此次error，
-        # 记录时间戳
-        end_time_ns = time.time_ns()
-        # 记录持续时间（毫秒）
-        end_time = datetime.now().isoformat()
+                continue
 
-        # 保证采样完整
-        time.sleep(2)
+            # 预热GPU
+            try:
+                for i_ in range(preheat):
+                    # 创建两个随机矩阵（尺寸可根据需要调整）
+                    a = torch.randn(100, 100).to(torch.device("cuda" if torch.cuda.is_available() else "cpu"))  # 100x100矩阵
+                    b = torch.randn(100, 100).to(torch.device("cuda" if torch.cuda.is_available() else "cpu"))
+                    # 执行矩阵乘法 → 触发CUDA核函数
+                    c = torch.matmul(a, b)  # 结果矩阵 100x100
 
-        # 计算时间
-        duration = round((end_time_ns - start_time_ns)/loop_per_sample, 2)
+            except Exception as error:
+                l.error(f"预热失败: {str(error)}")
+                torch.cuda.empty_cache()  # 显存异常时清空缓存
+                continue
 
-        other_data = {
-            "duration": duration,
-            "start_time": start_time,
-            "end_time": end_time,
-        }
+            # 记录时间戳
+            start_time = datetime.now().isoformat()
+            # 记录持续时间（毫秒）
+            start_time_ns = time.time_ns()
+            # 重复执行，不断采样
+            f = False
+            for _ in range(loop_per_sample):
+                try:
+                    operation.execute()
+                except Exception as error:
+                    l.error(error)
+                    f = True
+                    torch.cuda.empty_cache()  # 释放缓存
+                    # 跳出
+                    break
+            if f:
+                # 此次error
+                continue
+            # 记录时间戳
+            end_time_ns = time.time_ns()
+            # 记录持续时间（毫秒）
+            end_time = datetime.now().isoformat()
 
-        test_config = op.config
+            # 保证采样完整
+            time.sleep(1)
 
-        l.info(f"监测到数据\n{test_config}{other_data}")
+            # 计算时间
+            duration = round((end_time_ns - start_time_ns) / loop_per_sample, 2)
 
-        # 解析数据字典
-        dictionaries = [test_config, other_data]
-        for dictionary in dictionaries:
-            for key, value in dictionary.items():
-                # 第一次的时候需要初始化
-                if key not in records:
-                    records[key] = []
-                records[key].append(value)
+            other_data = {
+                "duration": duration,
+                "start_time": start_time,
+                "end_time": end_time,
+            }
 
+            test_config = op.config
+
+            l.info(f"监测到数据\n{test_config}{other_data}")
+
+            # 解析数据字典
+            dictionaries = [test_config, other_data]
+            for dictionary in dictionaries:
+                for key, value in dictionary.items():
+                    # 第一次的时候需要初始化
+                    if key not in records:
+                        records[key] = []
+                    records[key].append(value)
+
+    except Exception as error:
+        pass
     # 开始写最终的数据
     result_file = join(result_dir, file_name)
 
@@ -141,7 +146,7 @@ if __name__ == '__main__':
     # 初始化日志
     log_dir = join(abspath(dirname(dirname(abspath(__file__)))), "log")
     logger = Logger(log_dir)
-    
+
     # 解析命令行中的名称参数
     argv = deepcopy(sys.argv)
     args = {}
@@ -152,7 +157,7 @@ if __name__ == '__main__':
             key = splits[0]
             value = splits[1]
             args[key] = value
-            del argv[i+1]
+            del argv[i + 1]
 
     # 解析命令
     if len(argv) < 2:
@@ -188,6 +193,7 @@ if __name__ == '__main__':
             num_samples,
         )
         logger.info(f"对算子{op_name}的{num_samples}次测试结束!")
-        logger.info("--------------------------------------------------------------------------------------------------------------------------------------")#分割
+        logger.info(
+            "--------------------------------------------------------------------------------------------------------------------------------------")  #分割
 
     logger.info("实验结束！")
