@@ -8,7 +8,6 @@ class Add(BaseProcessor):
         super().__init__(args, logger)
         self.A = None
         self.B = None
-
     def generate_config(self):
         # 最大维数
         MAX_DIM_NUM = 4

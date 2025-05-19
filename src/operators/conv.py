@@ -7,6 +7,9 @@ from core.base_processor import BaseProcessor
 class Conv2D(BaseProcessor):
     def __init__(self, args, logger):
         super().__init__(args, logger)
+
+        print(f"生成器配置：{self.generator_config}")
+
         self.input_tensor = None
         self.output_tensor = None
         self.conv = None  # 卷积层
