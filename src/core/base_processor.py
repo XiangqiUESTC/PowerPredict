@@ -20,7 +20,7 @@ class BaseProcessor(ABC):
         self.logger = logger
 
         # 配置生成器的属性
-        self.generator_config = SN(**self._load_config())
+        super().__setattr__('generator_config', SN(**self._load_config()))
 
         # 默认有config属性
         self.config = None
@@ -77,3 +77,10 @@ class BaseProcessor(ABC):
                          f"\n{pprint.pformat(final_config, indent=4, width=1)}")
 
         return final_config
+
+    def __getattr__(self, name):
+        """当访问 self.xxx 时，若属性不存在，则尝试从 generator_config 获取"""
+        return getattr(self.generator_config, name)
+
+
+
