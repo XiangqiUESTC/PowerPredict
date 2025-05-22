@@ -1,9 +1,9 @@
 mode: "random"
 
 increase:
-  MAX_DIM_NUM: 200
+  DIM_NUM: 3
   SINGLE_DIM_LENGTH_MAX: 2048
-  step_increment: 2
+  step_increment: 128
 
 
 random:

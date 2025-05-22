@@ -8,6 +8,14 @@ class Add(BaseProcessor):
         super().__init__(args, logger)
         self.A = None
         self.B = None
+        if self.mode == "increase":
+            self.times = 0
+            self.dim = self.DIM_NUM
+            self.arr = []
+            self.current_index = 0
+            for i in range(self.dim):
+                self.arr.append(self.step_increment)#初始化
+
     def generate_config(self):
         # 最大维数
         MAX_DIM_NUM = 4
@@ -25,8 +33,17 @@ class Add(BaseProcessor):
         self.config = {
             "tensor_shape": arr
         }
-        return self.config
-
+        # return self.config
+        if self.mode == "random":
+           pass
+        elif self.generator_config.mode == "increase":
+            self.arr[self.current_index] += self.step_increment
+            self.current_index = (self.current_index + 1) % self.dim
+            self.config = {
+                "tensor_shape":self.arr
+            }
+        else:
+            raise NotImplementedError
     def setup(self):
         tensor_shape = self.config["tensor_shape"]
         self.A = torch.randn(
