@@ -54,7 +54,7 @@ def operation_monitor(operation, operation_name, l, num_sample=1, loop_per_sampl
             try:
                 operation.setup()
             except Exception as error:
-                l.error(error)
+                l.exception(error)
                 continue
 
             # 预热GPU
