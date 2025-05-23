@@ -3,3 +3,9 @@ mode: "random"
 increase:
 
 random:
+  max_tensor_num: 8
+  min_tensor_num: 2
+  max_tensor_dim: 4
+  min_tensor_dim: 1
+  max_dim_size: 512
+  min_dim_size: 256

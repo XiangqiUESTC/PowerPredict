@@ -7,8 +7,8 @@ increase:
 
 
 random:
-  single_dim_max_size: 512
-  single_dim_min_size: 1
+  max_dim_size: 512
+  min_dim_size: 1
   max_dim_num: 4
   min_dim_num: 1
 
