@@ -1,3 +1,5 @@
+from copy import deepcopy
+
 from core.base_processor import BaseProcessor
 import torch
 import random
@@ -6,12 +8,18 @@ import random
 class Cat(BaseProcessor):
     def __init__(self, args, logger):
         super().__init__(args, logger)
+
         self.logger = logger
         self.tensors = []
 
         # 增加模式需要初始化一些变量
         if self.mode == "increase":
             self.times = 0
+            self.cat_dim_sizes = [random.randint(self.min_dim_size, self.max_dim_size) for _ in
+                                  range(self.tensor_num)]
+            self.base_shapes = [random.randint(self.min_dim_size, self.max_dim_size) for _ in range(self.dim_num)]
+
+            self.cat_dim = random.randint(0, self.dim_num)
 
     def generate_config(self):
         if self.mode == "random":
@@ -44,23 +52,34 @@ class Cat(BaseProcessor):
                 # 确保拼接维度至少保留1个元素
                 new_shape[concat_dim] = random.randint(min_dim_size, max_dim_size)
                 tensor_shapes.append(new_shape)
+
+            self.config = {
+                "tensor_shapes": tensor_shapes,
+                "dim": concat_dim,
+            }
+
         elif self.mode == "increase":
-            pass
+            tensor_shapes = [deepcopy(self.base_shapes) for _ in range(self.tensor_num)]
+            for i, shape in enumerate(tensor_shapes):
+                shape[self.cat_dim] = self.cat_dim_sizes[i]
+
+            # 递增
+            for i in range(len(self.base_shapes)):
+                self.base_shapes[i] += self.step_increment
+
+            self.config = {
+                "tensor_shapes": tensor_shapes,
+                "dim": self.cat_dim,
+            }
+
         else:
             raise NotImplementedError
-
-        self.config = {
-            "tensor_shapes": tensor_shapes,
-            "dim": concat_dim,
-            "base_dims": base_dims  # 记录基础维度数用于验证
-        }
 
         return self.config
 
     def setup(self):
         """根据配置生成输入张量"""
         tensor_shapes = self.config['tensor_shapes']
-        base_dims = self.config['base_dims']
         # 初始化tensors为空列表
         self.tensors = []
 
