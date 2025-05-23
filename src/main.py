@@ -113,14 +113,14 @@ def operation_monitor(operation, operation_name, l, num_sample=1, loop_per_sampl
             # 解析数据字典
             dictionaries = [test_config, other_data]
             for dictionary in dictionaries:
-                for key, value in dictionary.items():
+                for k, v in dictionary.items():
                     # 第一次的时候需要初始化
-                    if key not in records:
-                        records[key] = []
-                    records[key].append(value)
+                    if k not in records:
+                        records[k] = []
+                    records[k].append(v)
 
     except Exception as error:
-        pass
+        logger.exception(error)
     # 开始写最终的数据
     result_file = join(result_dir, file_name)
 
