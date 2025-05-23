@@ -22,22 +22,22 @@ class Spmm(BaseProcessor):
     def generate_config(self):
         # 每个维度的区间
         if self.mode == "random":
-            SINGLE_DIM_LENGTH_MAX = self.generator_config.single_dim_max_size
-            SINGLE_DIM_LENGTH_MIN = self.generator_config.single_dim_min_size
+            single_dim_length_max = self.max_dim_size
+            single_dim_length_min = self.min_dim_size
             # 稀疏度
-            MAX_SPARSITY = self.generator_config.max_sparsity
-            MIN_SPARSITY = self.generator_config.min_sparsity
+            max_sparsity = self.max_sparsity
+            min_sparsity = self.min_sparsity
             # 生成m×p和p×n的矩阵
-            m = random.randint(SINGLE_DIM_LENGTH_MIN, SINGLE_DIM_LENGTH_MAX)
-            p = random.randint(SINGLE_DIM_LENGTH_MIN, SINGLE_DIM_LENGTH_MAX)
-            n = random.randint(SINGLE_DIM_LENGTH_MIN, SINGLE_DIM_LENGTH_MAX)
+            m = random.randint(single_dim_length_min, single_dim_length_max)
+            p = random.randint(single_dim_length_min, single_dim_length_max)
+            n = random.randint(single_dim_length_min, single_dim_length_max)
             # 随机生成非0元素个数
-            nnz_min = math.ceil(m*p*MIN_SPARSITY)
-            nnz_max = math.floor(m*p*MAX_SPARSITY)
+            nnz_min = math.ceil(m*p*min_sparsity)
+            nnz_max = math.floor(m*p*max_sparsity)
             nnz = random.randint(nnz_min, nnz_max)
             # 当前的稀疏度
             sparsity = nnz/(m*p)
-        elif self.generator_config.mode == "increase":
+        elif self.mode == "increase":
             m = self.m + (self.times//3 + int(self.times % 3 >= 0)) * self.step_increment
             n = self.n + (self.times//3 + int(self.times % 3 >= 1)) * self.step_increment
             p = self.p + (self.times//3 + int(self.times % 3 >= 2)) * self.step_increment
