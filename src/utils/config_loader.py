@@ -47,7 +47,8 @@ def load_config(config_path, default_config_path, args):
     final_config = default_config_dict_copy.get(final_mode, {})
 
     # 用个性化的配置覆盖通用化的配置
-    final_config.update(config)
+    if config:
+        final_config.update(config)
     # 添加mode字段
     final_config["mode"] = final_mode
 
