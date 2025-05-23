@@ -9,44 +9,61 @@ class Cat(BaseProcessor):
         self.logger = logger
         self.tensors = []
 
+        # 增加模式需要初始化一些变量
+        if self.mode == "increase":
+            self.times = 0
+
     def generate_config(self):
-        self.tensors = []
-        # 随机生成连接的tensor数量（2-3个）
-        tensor_num = random.randint(2, 3)
+        if self.mode == "random":
+            # 读一下配置
+            max_tensor_num = self.max_tensor_num
+            min_tensor_num = self.min_tensor_num
+            max_tensor_dim = self.max_tensor_dim
+            min_tensor_dim = self.min_tensor_dim
+            max_dim_size = self.max_dim_size
+            min_dim_size = self.min_dim_size
 
-        # 随机生成基础维度数（1-4维）
-        base_dims = random.randint(1, 4)
+            # 随机生成连接的tensor数量
+            tensor_num = random.randint(min_tensor_num, max_tensor_num)
 
-        # 生成基础形状（所有张量共享的基础维度）
-        base_shape = [
-            random.randint(1, 512) for _ in range(base_dims)
-        ]
+            # 随机生成基础维度数
+            base_dims = random.randint(min_tensor_dim, max_tensor_dim)
 
-        # 随机选择要拼接的维度
-        concat_dim = random.randint(0, base_dims - 1)
+            # 生成基础形状（所有张量共享的基础维度）
+            base_shape = [
+                random.randint(min_dim_size, max_dim_size) for _ in range(base_dims)
+            ]
 
-        # 生成每个张量的形状（仅修改拼接维度）
-        tensor_shapes = []
-        for _ in range(tensor_num):
-            new_shape = base_shape.copy()
-            # 确保拼接维度至少保留1个元素
-            new_shape[concat_dim] = random.randint(1, 512)
-            tensor_shapes.append(new_shape)
+            # 随机选择要拼接的维度
+            concat_dim = random.randint(0, base_dims - 1)
+
+            # 生成每个张量的形状（仅修改拼接维度）
+            tensor_shapes = []
+            for _ in range(tensor_num):
+                new_shape = base_shape.copy()
+                # 确保拼接维度至少保留1个元素
+                new_shape[concat_dim] = random.randint(min_dim_size, max_dim_size)
+                tensor_shapes.append(new_shape)
+        elif self.mode == "increase":
+            pass
+        else:
+            raise NotImplementedError
+
         self.config = {
             "tensor_shapes": tensor_shapes,
             "dim": concat_dim,
             "base_dims": base_dims  # 记录基础维度数用于验证
         }
+
         return self.config
 
     def setup(self):
         """根据配置生成输入张量"""
         tensor_shapes = self.config['tensor_shapes']
         base_dims = self.config['base_dims']
-        # 验证所有形状的维度数一致
-        for shape in tensor_shapes:
-            if len(shape) != base_dims:
-                raise ValueError(f"维度不一致: {shape} (应为{base_dims}维)")
+        # 初始化tensors为空列表
+        self.tensors = []
+
         for shape in tensor_shapes:
             self.tensors.append(torch.randn(
                 shape,
