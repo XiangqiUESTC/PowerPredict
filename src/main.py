@@ -84,6 +84,13 @@ def operation_monitor(operation, operation_name, l, num_sample=1, loop_per_sampl
     # 最终结果
     records = {}
     # 循环num_sample次
+
+    # 启动GPU监控线程
+    gpu_log = join(temp_dir, f'gpu_{operation_name}_{file_date}.csv')
+    stop_gpu = {"stop": False}
+    gpu_thread = threading.Thread(target=gpu_monitor_thread_func, args=(gpu_log, stop_gpu, l))
+    gpu_thread.start()
+
     try:
         for i in range(num_sample):
             # 开始测试
