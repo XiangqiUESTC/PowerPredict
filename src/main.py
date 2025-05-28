@@ -74,8 +74,6 @@ def operation_monitor(operation, operation_name, l, num_sample=1, loop_per_sampl
     records = {}
     # 循环num_sample次
 
-
-
     try:
         for i in range(num_sample):
             # 开始测试
@@ -97,8 +95,6 @@ def operation_monitor(operation, operation_name, l, num_sample=1, loop_per_sampl
                     b = torch.randn(100, 100).to(torch.device("cuda" if torch.cuda.is_available() else "cpu"))
                     # 执行矩阵乘法 → 触发CUDA核函数
                     c = torch.matmul(a, b)  # 结果矩阵 100x100
-
-
 
             except Exception as error:
                 l.error(f"预热失败: {str(error)}")
