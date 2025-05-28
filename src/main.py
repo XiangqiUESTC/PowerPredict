@@ -27,17 +27,6 @@ def gpu_monitor_thread_func(logfile, stop_flag, l):
     """
     # 新增目录创建逻辑
     os.makedirs(dirname(logfile), exist_ok=True)
-    # 如果是昆仑芯NPU，则取消注释以下代码，并注释掉原有的监测GPU的代码
-    # l.info("MONITOR-NPU-THREAD")
-    # with open(logfile, 'w') as f:
-    #     kml_proc = subprocess.Popen(["kml-smi", "--query", "power", "--interval", "1000"], stdout=kml_log)
-    #     while not stop_flag["stop"]:
-    #         line = kml_proc.stdout.readline()
-    #         # l.info("LINE: ", line)
-    #         if line:
-    #             f.write(line)
-    #             f.flush()
-    #     proc.terminate()
     # GPU监测代码
     with open(logfile, 'w') as f:
         f.write("timestamp  power.draw [W] util [%] memory [MiB]\n")
@@ -85,11 +74,7 @@ def operation_monitor(operation, operation_name, l, num_sample=1, loop_per_sampl
     records = {}
     # 循环num_sample次
 
-    # 启动GPU监控线程
-    gpu_log = join(temp_dir, f'gpu_{operation_name}_{file_date}.csv')
-    stop_gpu = {"stop": False}
-    gpu_thread = threading.Thread(target=gpu_monitor_thread_func, args=(gpu_log, stop_gpu, l))
-    gpu_thread.start()
+
 
     try:
         for i in range(num_sample):
@@ -113,10 +98,18 @@ def operation_monitor(operation, operation_name, l, num_sample=1, loop_per_sampl
                     # 执行矩阵乘法 → 触发CUDA核函数
                     c = torch.matmul(a, b)  # 结果矩阵 100x100
 
+
+
             except Exception as error:
                 l.error(f"预热失败: {str(error)}")
                 torch.cuda.empty_cache()  # 显存异常时清空缓存
                 continue
+
+            # 启动GPU监控线程
+            gpu_log = join(temp_dir, f'gpu_{operation_name}_{file_date}.csv')
+            stop_gpu = {"stop": False}
+            gpu_thread = threading.Thread(target=gpu_monitor_thread_func, args=(gpu_log, stop_gpu, l))
+            gpu_thread.start()
 
             # 记录时间戳
             start_time = datetime.now().isoformat()
@@ -140,6 +133,10 @@ def operation_monitor(operation, operation_name, l, num_sample=1, loop_per_sampl
             end_time_ns = time.time_ns()
             # 记录持续时间（毫秒）
             end_time = datetime.now().isoformat()
+
+            # 结束监控线程
+            stop_gpu["stop"] = True
+            gpu_thread.join()
 
             # 保证采样完整
             time.sleep(1)
