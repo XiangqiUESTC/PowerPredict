@@ -160,6 +160,26 @@ def operation_monitor(operation, operation_name, l, num_sample=1, loop_per_sampl
             # 保证采样完整
             time.sleep(1)
 
+            # 解析GPU功耗数据
+            powers = []
+            with open(gpu_log, 'r') as f:
+                # 跳过文件头
+                next(f)
+                for data_line in f:
+                    data_item = data_line.strip().split(',')
+                    if len(data_item) == 4:
+                        powers.append(float(data_item[1]))
+            # 取平均,保留两位小数
+            avg_power = round(sum(powers) / len(powers), 2) if powers else 0
+            # 有时候没有读到任何一条数据,避免max空列表出错,加入数据0
+            powers.append(0)
+            max_power = round(max(powers), 2)
+
+            gpu_data = {
+                "max_gpu_power": max_power,
+                "avg_gpu_power": avg_power,
+            }
+
             # 计算时间
             duration = round((end_time_ns - start_time_ns) / loop_per_sample, 2)
 
@@ -171,10 +191,10 @@ def operation_monitor(operation, operation_name, l, num_sample=1, loop_per_sampl
 
             test_config = op.config
 
-            l.info(f"监测到数据\n{test_config}{other_data}")
+            l.info(f"监测到数据\n{test_config}{other_data}{gpu_data}")
 
             # 解析数据字典
-            dictionaries = [test_config, other_data]
+            dictionaries = [test_config, other_data, gpu_data]
             for dictionary in dictionaries:
                 for k, v in dictionary.items():
                     # 第一次的时候需要初始化
