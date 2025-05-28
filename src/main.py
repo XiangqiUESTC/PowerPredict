@@ -15,6 +15,46 @@ import os
 from utils.logger import Logger
 from utils.csv_utils import write_csv
 
+# ----------------- GPU 监控线程 -----------------
+def gpu_monitor_thread_func(logfile, stop_flag, l):
+    """
+    ARGS:
+        logfile: gpu监测信息的输出文件的绝对路径
+        stop_flag: stop_flag是一个字典，字典属于非基本变量，通过字典里面的值来在外部控制进程的结束
+        l: 日志实例对象
+    DESCRIPTION:
+        gpu监控线程函数
+    """
+    # 新增目录创建逻辑
+    os.makedirs(dirname(logfile), exist_ok=True)
+    # 如果是昆仑芯NPU，则取消注释以下代码，并注释掉原有的监测GPU的代码
+    # l.info("MONITOR-NPU-THREAD")
+    # with open(logfile, 'w') as f:
+    #     kml_proc = subprocess.Popen(["kml-smi", "--query", "power", "--interval", "1000"], stdout=kml_log)
+    #     while not stop_flag["stop"]:
+    #         line = kml_proc.stdout.readline()
+    #         # l.info("LINE: ", line)
+    #         if line:
+    #             f.write(line)
+    #             f.flush()
+    #     proc.terminate()
+    # GPU监测代码
+    with open(logfile, 'w') as f:
+        f.write("timestamp  power.draw [W] util [%] memory [MiB]\n")
+        while not stop_flag["stop"]:
+            timestamp = datetime.now().strftime('%Y-%m-%d %H:%M:%S')
+            try:
+                output = subprocess.check_output([
+                    'nvidia-smi',
+                    '--query-gpu=power.draw,utilization.gpu,memory.used',
+                    '--format=csv,noheader,nounits'
+                ])
+                line = output.decode('utf-8').strip()
+                f.write(f"{timestamp},{line}\n")
+                f.flush()
+            except Exception as e:
+                l.exception("GPU monitoring error:", e)
+                break
 
 def operation_monitor(operation, operation_name, l, num_sample=1, loop_per_sample=64, preheat=80):
     """
