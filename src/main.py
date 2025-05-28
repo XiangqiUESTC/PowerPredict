@@ -15,6 +15,38 @@ import os
 from utils.logger import Logger
 from utils.csv_utils import write_csv
 
+def get_gpu_power():
+    try:
+        # 执行 npu-smi info 命令获取原始输出
+        output = subprocess.check_output("npu-smi info", shell=True, text=True)
+
+        # 解析输出，提取所有NPU的功耗值
+        power_values = []
+        for line in output.split('\n'):
+            # print("start get_gpu_power")
+            # print("-" * 50)
+            # print("-" * 50)
+            # print(line)
+            # print("-" * 50)
+            # print("-" * 50)
+            if '| 0     ' in line:  # 匹配NPU信息行
+                parts = [p.strip() for p in line.split('|') if p.strip()]
+                # print("parts :", parts)
+                # if len(parts) >= 4:
+                if parts[1] == 'OK':
+                    power = parts[2].split()[0]  # 提取功耗值(如"93.9")
+                    power_values.append(float(power))
+                    # print("gpu功耗: ", power)
+
+        # 计算平均功耗(如果有多个NPU)
+        if power_values:
+            return sum(power_values) / len(power_values)
+        return None
+
+    except Exception as e:
+        print(f"获取NPU功耗出错: {e}")
+        return None
+
 # ----------------- GPU 监控线程 -----------------
 def gpu_monitor_thread_func(logfile, stop_flag, l):
     """
@@ -32,18 +64,9 @@ def gpu_monitor_thread_func(logfile, stop_flag, l):
         f.write("timestamp  power.draw [W] util [%] memory [MiB]\n")
         while not stop_flag["stop"]:
             timestamp = datetime.now().strftime('%Y-%m-%d %H:%M:%S')
-            try:
-                output = subprocess.check_output([
-                    'nvidia-smi',
-                    '--query-gpu=power.draw,utilization.gpu,memory.used',
-                    '--format=csv,noheader,nounits'
-                ])
-                line = output.decode('utf-8').strip()
-                f.write(f"{timestamp},{line}\n")
-                f.flush()
-            except Exception as e:
-                l.exception("GPU monitoring error:", e)
-                break
+            power = get_gpu_power()
+            if power:
+                f.write(f"{timestamp},{power}\n")
 
 def operation_monitor(operation, operation_name, l, num_sample=1, loop_per_sample=64, preheat=80):
     """
