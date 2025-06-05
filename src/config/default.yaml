@@ -1,4 +1,5 @@
 mode: "random"
+device: "cpu" # choose device from cuda,cpu
 
 increase:
   step_increment: 64
