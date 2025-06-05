@@ -16,7 +16,7 @@ def write_csv(filename, data):
     # 获取所有键（列名）
     headers = data.keys()
     # 获取行数（以最长的列表为准）
-    num_rows = max(len(v) for v in data.values())
+    num_rows = max([len(v) for v in data.values()], default=0)
     with open(filename, 'w', newline='') as f:
         writer = csv.writer(f)
         writer.writerow(headers)  # 写入表头
