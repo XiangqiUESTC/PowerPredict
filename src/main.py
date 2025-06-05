@@ -234,13 +234,19 @@ if __name__ == '__main__':
     argv = deepcopy(sys.argv)
     args = {}
     # 解析所有--key=value的命令行参数，并将其从命令行参数中删掉，保存在字典arg_dict中
+    index_to_del = []
     for i, arg in enumerate(argv[1:]):
         if arg.startswith("--"):
             splits = arg[2:].split("=")
             key = splits[0]
             value = splits[1]
             args[key] = value
-            del argv[i + 1]
+            index_to_del.append(i + 1)
+
+    index_to_del.reverse()
+
+    for i in index_to_del:
+        del argv[i]
 
     # 解析命令
     if len(argv) < 2:
