@@ -64,7 +64,7 @@ class Cat(BaseProcessor):
                 shape[self.cat_dim] = self.cat_dim_sizes[i]
 
             # 递增
-            for i in range(len(self.base_shapes)):
+            for i in range(self.dim_num):
                 self.base_shapes[i] += self.step_increment
 
             self.config = {
