@@ -1,5 +1,4 @@
 import torch
-
 from core.base_processor import BaseProcessor
 import random
 
@@ -9,22 +8,34 @@ class Softmax(BaseProcessor):
         super().__init__(args, logger)
         self.input_tensor = None
 
-    def generate_config(self):
-        # 最大维数
-        MAX_DIM_NUM = 3
-        # 最小维数
-        MIN_DIM_NUM = 1
-        # 每个维度的区间
-        SINGLE_DIM_LENGTH_MAX = 1024
-        SINGLE_DIM_LENGTH_MIN = 1
+        # 递增模式初始化
+        if self.mode == "increase":
+            self.times = 0  # 运行次数计数器
+            # 初始化维度大小（随机值在[min_dim_size, max_dim_size]区间）
+            self.dim_sizes = [
+                random.randint(self.min_dim_size, self.max_dim_size)
+                for _ in range(self.dim_num)
+            ]
 
-        # 随机维度数量
-        k = random.randint(MIN_DIM_NUM, MAX_DIM_NUM)
-        # 生成维度值
-        arr = [random.randint(SINGLE_DIM_LENGTH_MIN, SINGLE_DIM_LENGTH_MAX) for _ in range(k)]
-        # 随机选择操作的维度
-        dim = random.randint(0, k - 1)
-        # 返回配置字典
+    def generate_config(self):
+        if self.mode == "random":
+            # 使用yaml配置参数
+            k = random.randint(self.min_dim_num, self.max_dim_num)
+            arr = [
+                random.randint(self.min_dim_size, self.max_dim_size)
+                for _ in range(k)
+            ]
+            dim = random.randint(0, k - 1)
+
+        elif self.mode == "increase":
+            # 递增维度大小
+            arr = [size + self.times * self.step_increment for size in self.dim_sizes]
+            dim = self.start_dim  # 固定计算维度
+            self.times += 1  # 更新计数器
+
+        else:
+            raise NotImplementedError(f"Unsupported mode: {self.mode}")
+
         self.config = {"tensor_shape": arr, "dim": dim}
         return self.config
 
@@ -39,5 +50,3 @@ class Softmax(BaseProcessor):
 
     def execute(self):
         return torch.softmax(self.input_tensor, self.config["dim"])
-
-

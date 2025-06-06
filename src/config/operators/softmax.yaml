@@ -1,9 +1,14 @@
-mode: "random"
+mode: "increase"
 
 increase:
-  MAX_DIM_NUM: 100
-  SINGLE_DIM_LENGTH_MAX: 1024 * 10
+  max_dim_size: 512
+  min_dim_size: 1
   step_increment: 32
-
+  dim_num: 3
+  start_dim: 0
 
 random:
+  max_dim_num: 4
+  min_dim_num: 1
+  max_dim_size: 1024
+  min_dim_size: 1
