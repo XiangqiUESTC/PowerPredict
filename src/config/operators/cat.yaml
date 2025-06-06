@@ -1,9 +1,9 @@
 mode: "increase"
 
 increase:
-  max_dim_size: 512
+  max_dim_size: 256
   min_dim_size: 1
-  step_increment: 64
+  step_increment: 16
   dim_num: 3
   tensor_num: 4
 
