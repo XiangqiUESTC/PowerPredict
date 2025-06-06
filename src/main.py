@@ -6,6 +6,7 @@ import threading
 import subprocess
 import csv
 from datetime import datetime
+from utils.device import is_device_avail_on_torch
 
 import torch
 
@@ -15,45 +16,69 @@ import os
 from utils.logger import Logger
 from utils.csv_utils import write_csv
 
-def get_gpu_power():
-    try:
-        # 执行 npu-smi info 命令获取原始输出
-        output = subprocess.check_output("npu-smi info", shell=True, text=True)
 
-        # 解析输出，提取所有NPU的功耗值
-        power_values = []
-        for line in output.split('\n'):
-            # print("start get_gpu_power")
-            # print("-" * 50)
-            # print("-" * 50)
-            # print(line)
-            # print("-" * 50)
-            # print("-" * 50)
-            if '| 0     ' in line:  # 匹配NPU信息行
-                parts = [p.strip() for p in line.split('|') if p.strip()]
-                # print("parts :", parts)
-                # if len(parts) >= 4:
-                if parts[1] == 'OK':
-                    power = parts[2].split()[0]  # 提取功耗值(如"93.9")
-                    power_values.append(float(power))
-                    # print("gpu功耗: ", power)
+def get_gpu_info(device, l):
+    """
+        :param l: 日志器
+        :param device: 不同的设备类型
+        :return: gpu数据，包括功率、utilization、memory
+    """
+    if device == "cuda":
+        try:
+            output = subprocess.check_output([
+                'nvidia-smi',
+                '--query-gpu=power.draw,utilization.gpu,memory.used',
+                '--format=csv,noheader,nounits'
+            ])
+            info = output.decode('utf-8').strip()
+            return info
+        except Exception as e:
+            l.error(f"获取{device}设备信息出错")
+            l.exception(e)
+            return None
+    elif device == "npu":
+        try:
+            # 执行 npu-smi info 命令获取原始输出
+            output = subprocess.check_output("npu-smi info", shell=True, text=True)
 
-        # 计算平均功耗(如果有多个NPU)
-        if power_values:
-            return sum(power_values) / len(power_values)
+            # 解析输出，提取所有NPU的功耗值
+            power_values = []
+            for line in output.split('\n'):
+                # print("start get_gpu_power")
+                # print("-" * 50)
+                # print("-" * 50)
+                # print(line)
+                # print("-" * 50)
+                # print("-" * 50)
+                if '| 0     ' in line:  # 匹配NPU信息行
+                    parts = [p.strip() for p in line.split('|') if p.strip()]
+                    # print("parts :", parts)
+                    # if len(parts) >= 4:
+                    if parts[1] == 'OK':
+                        power = parts[2].split()[0]  # 提取功耗值(如"93.9")
+                        power_values.append(float(power))
+                        # print("gpu功耗: ", power)
+
+            # 计算平均功耗(如果有多个NPU)
+            if power_values:
+                return sum(power_values) / len(power_values)
+            return None
+        except Exception as e:
+            print(f"获取NPU功耗出错: {e}")
+            return None
+    elif device == "xpu":
         return None
-
-    except Exception as e:
-        print(f"获取NPU功耗出错: {e}")
-        return None
+    else:
+        raise Exception("Unknown device")
 
 # ----------------- GPU 监控线程 -----------------
-def gpu_monitor_thread_func(logfile, stop_flag, l):
+def gpu_monitor_thread_func(logfile, stop_flag, l, device):
     """
     ARGS:
         logfile: gpu监测信息的输出文件的绝对路径
         stop_flag: stop_flag是一个字典，字典属于非基本变量，通过字典里面的值来在外部控制进程的结束
         l: 日志实例对象
+        device: gpu设备类型
     DESCRIPTION:
         gpu监控线程函数
     """
@@ -61,31 +86,27 @@ def gpu_monitor_thread_func(logfile, stop_flag, l):
     os.makedirs(dirname(logfile), exist_ok=True)
     # GPU监测代码
     with open(logfile, 'w') as f:
-        f.write("timestamp  power.draw [W] util [%] memory [MiB]\n")
+        f.write("timestamp, power.draw[W], util[%], memory[MiB]\n")
         while not stop_flag["stop"]:
             timestamp = datetime.now().strftime('%Y-%m-%d %H:%M:%S')
-            power = get_gpu_power()
-            if power:
-                f.write(f"{timestamp},{power}\n")
+            info = get_gpu_info(device, l)
+            if info:
+                f.write(f"{timestamp}, {info}\n")
 
 def operation_monitor(operation, operation_name, l, num_sample=1, loop_per_sample=64, preheat=80):
     """
     ARGS:
-        operation: operation是基本的算子,同时是base_operation的实现类的实例对象
+        operation: operation是基本的算子或者模型,同时是base_operation的实现类的实例对象
         operation_name: 算子的名称,用于命名最后的文件
-        num_sample: 该算子要测试的数据组数
-        loop_per_sample: 每个算子重复测试的次数,最后取平均
-        preheat: 预热次数
         l: 日志实例对象
+        num_sample=1: 该算子要测试的默认数据组数
+        loop_per_sample=64: 每个算子重复测试的次数,最后取平均
+        preheat=80: 预热次数
+
     DESCRIPTION:
         创建两个线程，分别监控该算子在运算时的CPU和GPU数据，分析并合并输出为csv
     """
     file_name = operation_name + ".csv"
-    # with open(file_name, 'w', newline='') as f:
-    #     writer = csv.writer(f)
-    #     writer.writerow([
-    #     'MatrixSize', 'Duration(s)', 'AvgCPUPkgW', 'AvgGPUPower(W)', 'AvgGPUUtil(%)', 'AvgGPUMem(MiB)'
-    #     ])
 
     # csv中间文件夹
     temp_dir = join(abspath(dirname(dirname(abspath(__file__)))), "temp")
@@ -95,120 +116,144 @@ def operation_monitor(operation, operation_name, l, num_sample=1, loop_per_sampl
     file_date = datetime.now().strftime("%Y-%m-%d_%H-%M-%S")
     # 最终结果
     records = {}
-    # 循环num_sample次
 
-    try:
-        for i in range(num_sample):
-            # 开始测试
-            l.info(f"Test Case {i + 1} for {op_name}: Starting monitoring and computation...")
-            # 生成此次测试的配置
-            _ = operation.generate_config()
-            # 装配数据
+    # 获取当前的设备设置信息
+    device = op.device
+    device_avail = is_device_avail_on_torch(device)
+
+    # 如果设备正常，运行测试
+    if device_avail:
+        # 循环num_sample次
+        for j in range(num_sample):
             try:
-                operation.setup()
-            except Exception as error:
-                l.exception(error)
-                continue
-
-            # 预热GPU
-            try:
-                for i_ in range(preheat):
-                    # 创建两个随机矩阵（尺寸可根据需要调整）
-                    a = torch.randn(100, 100).to(torch.device("cuda" if torch.cuda.is_available() else "cpu"))  # 100x100矩阵
-                    b = torch.randn(100, 100).to(torch.device("cuda" if torch.cuda.is_available() else "cpu"))
-                    # 执行矩阵乘法 → 触发CUDA核函数
-                    c = torch.matmul(a, b)  # 结果矩阵 100x100
-
-            except Exception as error:
-                l.error(f"预热失败: {str(error)}")
-                torch.cuda.empty_cache()  # 显存异常时清空缓存
-                continue
-
-            # 启动GPU监控线程
-            gpu_log = join(temp_dir, f'gpu_{operation_name}_{file_date}.csv')
-            stop_gpu = {"stop": False}
-            gpu_thread = threading.Thread(target=gpu_monitor_thread_func, args=(gpu_log, stop_gpu, l))
-            gpu_thread.start()
-
-            # 记录时间戳
-            start_time = datetime.now().isoformat()
-            # 记录持续时间（毫秒）
-            start_time_ns = time.time_ns()
-            # 重复执行，不断采样
-            f = False
-            for _ in range(loop_per_sample):
+                # 开始测试
+                l.info(f"Test Case {j + 1} for {op_name}: Starting monitoring and computation...")
+                # 生成此次测试的配置
+                _ = operation.generate_config()
+                # 装配数据
                 try:
-                    operation.execute()
+                    operation.setup()
                 except Exception as error:
-                    l.error(error)
-                    f = True
-                    torch.cuda.empty_cache()  # 释放缓存
-                    # 跳出
-                    break
-            if f:
-                # 此次error
-                continue
-            # 记录时间戳
-            end_time_ns = time.time_ns()
-            # 记录持续时间（毫秒）
-            end_time = datetime.now().isoformat()
+                    l.exception(error)
+                    continue
 
-            # 结束监控线程
-            stop_gpu["stop"] = True
-            gpu_thread.join()
+                # 预热GPU
+                try:
+                    for i_ in range(preheat):
+                        # 创建两个随机矩阵（尺寸可根据需要调整）
+                        a = torch.randn(100, 100).to(torch.device("cuda" if torch.cuda.is_available() else "cpu"))  # 100x100矩阵
+                        b = torch.randn(100, 100).to(torch.device("cuda" if torch.cuda.is_available() else "cpu"))
+                        # 执行矩阵乘法 → 触发CUDA核函数
+                        c = torch.matmul(a, b)  # 结果矩阵 100x100
 
-            # 保证采样完整
-            time.sleep(1)
+                except Exception as error:
+                    l.error(f"预热失败: {str(error)}")
+                    torch.cuda.empty_cache()  # 显存异常时清空缓存
+                    continue
 
-            # 解析GPU功耗数据
-            powers = []
-            with open(gpu_log, 'r') as f:
-                # 跳过文件头
-                next(f)
-                for data_line in f:
-                    data_item = data_line.strip().split(',')
-                    if len(data_item) == 4:
-                        powers.append(float(data_item[1]))
-            # 取平均,保留两位小数
-            avg_power = round(sum(powers) / len(powers), 2) if powers else 0
-            # 有时候没有读到任何一条数据,避免max空列表出错,加入数据0
-            powers.append(0)
-            max_power = round(max(powers), 2)
+                # 启动GPU监控线程(此处的gpu可能是cuda，也可能是xpu、npu等)
+                gpu_log = join(temp_dir, f'gpu_{operation_name}_{file_date}.csv')
+                stop_gpu = {"stop": False}
+                gpu_thread = threading.Thread(target=gpu_monitor_thread_func, args=(gpu_log, stop_gpu, l, device))
+                gpu_thread.start()
 
-            gpu_data = {
-                "max_gpu_power": max_power,
-                "avg_gpu_power": avg_power,
-            }
+                # 记录时间戳
+                start_time = datetime.now().isoformat()
+                # 记录持续时间（毫秒）
+                start_time_ns = time.time_ns()
+                # 重复执行，不断采样
+                f = False
+                for _ in range(loop_per_sample):
+                    try:
+                        operation.execute()
+                    except Exception as error:
+                        l.error(error)
+                        f = True
+                        torch.cuda.empty_cache()  # 释放缓存
+                        # 跳出
+                        break
+                if f:
+                    # 此次error
+                    continue
+                # 记录时间戳
+                end_time_ns = time.time_ns()
+                # 记录持续时间（毫秒）
+                end_time = datetime.now().isoformat()
 
-            # 计算时间
-            duration = round((end_time_ns - start_time_ns) / loop_per_sample, 2)
+                # 结束监控线程
+                stop_gpu["stop"] = True
+                gpu_thread.join()
 
-            other_data = {
-                "duration": duration,
-                "start_time": start_time,
-                "end_time": end_time,
-            }
+                # 保证采样完整
+                time.sleep(1)
 
-            test_config = op.config
+                # 解析GPU功耗数据
+                powers = []
+                utils = []
+                memory_used = []
+                with open(gpu_log, 'r') as f:
+                    # 跳过文件头
+                    next(f)
+                    for data_line in f:
+                        data_item = data_line.strip().split(',')
+                        if len(data_item) == 4:
+                            powers.append(float(data_item[1]))
+                            utils.append(float(data_item[2]))
+                            memory_used.append(float(data_item[3]))
+                # 取平均,保留两位小数
+                avg_power = round(sum(powers) / len(powers), 2) if powers else 0
+                max_power = round(max(powers, default=0), 2)
 
-            l.info(f"监测到数据\n{test_config}{other_data}{gpu_data}")
+                # 取平均,保留两位小数
+                avg_utils = round(sum(utils) / len(utils), 2) if utils else 0
+                max_utils = round(max(utils, default=0), 2)
 
-            # 解析数据字典
-            dictionaries = [test_config, other_data, gpu_data]
-            for dictionary in dictionaries:
-                for k, v in dictionary.items():
-                    # 第一次的时候需要初始化
-                    if k not in records:
-                        records[k] = []
-                    records[k].append(v)
+                # 取平均,保留两位小数
+                avg_memory_used = round(sum(memory_used) / len(memory_used), 2) if memory_used else 0
+                max_memory_used = round(max(memory_used, default=0), 2)
 
-    except Exception as error:
-        logger.exception(error)
-    # 开始写最终的数据
-    result_file = join(result_dir, file_name)
+                gpu_data = {
+                    "max_gpu_power": max_power,
+                    "avg_gpu_power": avg_power,
+                    "max_gpu_util": max_utils,
+                    "avg_gpu_utils": avg_utils,
+                    "max_gpu_memory_used": max_memory_used,
+                    "avg_gpu_memory_used": avg_memory_used,
+                }
 
-    # 写入CSV
-    write_csv(result_file, records)
+                # 计算时间
+                duration = round((end_time_ns - start_time_ns) / loop_per_sample, 2)
+
+                other_data = {
+                    "duration": duration,
+                    "start_time": start_time,
+                    "end_time": end_time,
+                }
+
+                test_config = op.config
+
+                l.info(f"监测到数据\n{test_config}{other_data}{gpu_data}")
+
+                # 解析数据字典
+                dictionaries = [test_config, other_data, gpu_data]
+                for dictionary in dictionaries:
+                    for k, v in dictionary.items():
+                        # 第一次的时候需要初始化
+                        if k not in records:
+                            records[k] = []
+                        records[k].append(v)
+
+            except Exception as error:
+                logger.error(f"{operation_name}第{j + 1}/{loop_per_sample}次重复测试失败，原因是：\n")
+                logger.exception(error)
+        # 开始写最终的数据
+        result_file = join(result_dir, file_name)
+        # 写入CSV
+        write_csv(result_file, records)
+    else:
+        l.error(f"{device}不可用,已跳过测试")
+
+
 
 
 # ----------------- 主函数 -----------------
