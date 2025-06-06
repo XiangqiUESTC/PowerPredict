@@ -49,6 +49,9 @@ def load_config(self_config_path, default_config_path, args):
     # default_config是所有算子通用的配置
     final_config = default_config_dict_copy.get(final_mode, {})
 
+    if final_config is None:
+        final_config = {}
+
     # 用个性化的配置覆盖通用化的配置
     if config:
         final_config.update(config)
