@@ -25,9 +25,6 @@ class BaseProcessor(ABC):
         # 默认有config属性
         self.config = None
 
-        # 统一设备管理
-        self.device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
-
     @abstractmethod
     def generate_config(self):
         """
