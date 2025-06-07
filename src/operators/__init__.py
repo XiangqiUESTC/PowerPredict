@@ -43,7 +43,7 @@ OPERATOR_REGISTRY = {
     "spmm": Spmm,
     "flatten": Flatten,
     "cat": Cat,
-    "lay_norm": LayerNorm,
+    "layer_norm": LayerNorm,
     "embedding": Embedding,
     "positional_encoding": PositionalEncoding,
     "roi_align": RoIAlign,
