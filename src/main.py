@@ -168,6 +168,7 @@ def operation_monitor(operation, operation_name, l, num_sample=1, loop_per_sampl
                         operation.execute()
                     except Exception as error:
                         l.error(error)
+                        l.exception(error)
                         f = True
                         torch.cuda.empty_cache()  # 释放缓存
                         # 跳出
