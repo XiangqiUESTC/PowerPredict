@@ -1,5 +1,15 @@
-mode: "random"
+mode: "increase"
 
 increase:
+  max_dim_size: 256
+  min_dim_size: 1
+  step_increment: 32
+  dim_num: 4
+  start_dim: 0
+  end_dim: 3
 
 random:
+  max_dim_num: 4
+  min_dim_num: 2
+  max_dim_size: 256
+  min_dim_size: 1
