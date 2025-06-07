@@ -1,5 +1,13 @@
-mode: "random"
+mode: "increase"
 
 increase:
+  base_seq_len: 256
+  base_d_model: 512
+  step_increment: 256
+  max_seq_len: 4096
+  max_d_model: 4096
 
 random:
+  min_seq_len: 4
+  max_seq_len: 512
+  d_model_options: [64, 128, 256, 512]
