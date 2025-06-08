@@ -36,7 +36,7 @@ class Softmax(BaseProcessor):
         else:
             raise NotImplementedError(f"Unsupported mode: {self.mode}")
 
-        self.config = {"tensor_shape": arr, "dim": dim}
+        self.config = {"tensor_shape": arr, "dim": dim, "device": self.device}
         return self.config
 
     def setup(self):

@@ -55,7 +55,8 @@ class Spmm(BaseProcessor):
             "n": n,
             "p": p,
             "nnz": nnz,
-            "sparsity": sparsity
+            "sparsity": sparsity,
+            "device": self.device,
         }
 
         return self.config

@@ -54,7 +54,8 @@ class RoIAlign(BaseProcessor):
             "output_size": (pooled_h, pooled_w),
             "spatial_scale": spatial_scale,
             "sampling_ratio": sampling_ratio,
-            "aligned": aligned
+            "aligned": aligned,
+            "device": self.device,
         }
         return self.config
 

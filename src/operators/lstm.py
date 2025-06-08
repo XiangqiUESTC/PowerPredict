@@ -10,22 +10,62 @@ class LSTM(BaseProcessor):
         self.input_tensor = None
         self.lstm = None
 
-    def generate_config(self):
-        # 参数上限定义
-        MAX_INPUT_SIZE = 512
-        MAX_HIDDEN_SIZE = 512
-        MAX_LAYERS = 4
-        MAX_SEQ_LEN = 100
-        MAX_BATCH_SIZE = 64
+        # 设置默认参数（可以从 args 读取或直接写死）
+        self.min_input_size = 1
+        self.max_input_size = 1024
+        self.min_hidden_size = 1
+        self.max_hidden_size = 1024
+        self.min_layers = 1
+        self.max_layers = 4
+        self.min_seq_len = 4
+        self.max_seq_len = 512
+        self.min_batch_size = 1
+        self.max_batch_size = 64
+        self.bidirectional_options = [True, False]
 
-        input_size = random.randint(1, MAX_INPUT_SIZE)
-        hidden_size = random.randint(1, MAX_HIDDEN_SIZE)
-        num_layers = random.randint(1, MAX_LAYERS)
-        bidirectional = random.choice([True, False])
-        # 更通用
-        batch_first = True
-        batch_size = random.randint(1, MAX_BATCH_SIZE)
-        seq_len = random.randint(1, MAX_SEQ_LEN)
+        # 递增模式用初始参数
+        if self.mode == "increase":
+            self.times = 0  # 增长计数器
+            self.base_input_size = 16
+            self.base_hidden_size = 16
+            self.base_num_layers = 1
+            self.base_batch_size = 2
+            self.base_seq_len = 8
+            self.step_increment = 16
+
+            # 递增模式固定参数
+            self.bidirectional = False
+            self.batch_first = True
+
+            # 设置上限
+            self.max_input_size = 4096
+            self.max_hidden_size = 4096
+            self.max_num_layers = 16
+            self.max_seq_len = 2048
+            self.max_batch_size = 256
+
+    def generate_config(self):
+        if self.mode == "random":
+            input_size = random.randint(self.min_input_size, self.max_input_size)
+            hidden_size = random.randint(self.min_hidden_size, self.max_hidden_size)
+            num_layers = random.randint(self.min_layers, self.max_layers)
+            bidirectional = random.choice(self.bidirectional_options)
+            batch_first = random.choice([True, False])
+            batch_size = random.randint(self.min_batch_size, self.max_batch_size)
+            seq_len = random.randint(self.min_seq_len, self.max_seq_len)
+
+        elif self.mode == "increase":
+            input_size = min(self.base_input_size + self.times * self.step_increment, self.max_input_size)
+            hidden_size = min(self.base_hidden_size + self.times * self.step_increment, self.max_hidden_size)
+            num_layers = min(self.base_num_layers + self.times // 2, self.max_num_layers)
+            batch_size = min(self.base_batch_size + self.times * 2, self.max_batch_size)
+            seq_len = min(self.base_seq_len + self.times * 4, self.max_seq_len)
+            bidirectional = self.bidirectional
+            batch_first = self.batch_first
+            self.times += 1
+
+        else:
+            raise NotImplementedError(f"Unsupported mode: {self.mode}")
 
         self.config = {
             "input_size": input_size,
@@ -33,7 +73,8 @@ class LSTM(BaseProcessor):
             "num_layers": num_layers,
             "bidirectional": bidirectional,
             "batch_first": batch_first,
-            "input_shape": [batch_size, seq_len, input_size],
+            "input_shape": [batch_size, seq_len, input_size] if batch_first else [seq_len, batch_size, input_size],
+            "device": self.device,
         }
         return self.config
 
@@ -44,6 +85,7 @@ class LSTM(BaseProcessor):
         bidirectional = self.config["bidirectional"]
         batch_first = self.config["batch_first"]
         input_shape = self.config["input_shape"]
+
         self.lstm = nn.LSTM(
             input_size=input_size,
             hidden_size=hidden_size,
@@ -51,14 +93,13 @@ class LSTM(BaseProcessor):
             batch_first=batch_first,
             bidirectional=bidirectional
         ).to(self.device)
+
         self.input_tensor = torch.randn(
-            # "input_shape": [batch_size, seq_len, input_size],
-            *input_shape,
+            input_shape,
             dtype=torch.float32,
             device=self.device
         )
 
     def execute(self):
-        # 也可以 return output, (hn, cn) 如果你想要状态也返回
         output, (hn, cn) = self.lstm(self.input_tensor)
         return output
