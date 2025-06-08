@@ -35,7 +35,8 @@ class Add(BaseProcessor):
             # 生成配置字典
             self.config = {
                 "tensor_shape": arr,
-                "dim": k
+                "dim": k,
+                "device": self.device,
             }
         elif self.mode == "increase":
             self.arr[self.current_index] += self.step_increment
