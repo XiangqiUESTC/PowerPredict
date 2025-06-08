@@ -70,6 +70,7 @@ class Cat(BaseProcessor):
             self.config = {
                 "tensor_shapes": tensor_shapes,
                 "dim": self.cat_dim,
+                "device": self.device,
             }
 
         else:

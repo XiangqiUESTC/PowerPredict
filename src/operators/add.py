@@ -36,7 +36,8 @@ class Add(BaseProcessor):
             raise NotImplementedError(f"Unsupported mode: {self.mode}")
 
         self.config = {
-            "tensor_shape": arr
+            "tensor_shape": arr,
+            "device": self.device,
         }
         return self.config
 

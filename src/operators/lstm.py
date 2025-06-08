@@ -74,6 +74,7 @@ class LSTM(BaseProcessor):
             "bidirectional": bidirectional,
             "batch_first": batch_first,
             "input_shape": [batch_size, seq_len, input_size] if batch_first else [seq_len, batch_size, input_size],
+            "device": self.device,
         }
         return self.config
 

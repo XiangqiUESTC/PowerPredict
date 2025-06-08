@@ -45,6 +45,7 @@ class LayerNorm(BaseProcessor):
         self.config = {
             "tensor_shape": arr,
             "normalized_shape": normalized_shape,
+            "device": self.device,
         }
         return self.config
 

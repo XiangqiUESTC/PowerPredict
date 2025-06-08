@@ -44,6 +44,7 @@ class Flatten(BaseProcessor):
             "tensor_shape": arr,
             "start_dim": start_dim,
             "end_dim": end_dim,
+            "device": self.device,
         }
         return self.config
 

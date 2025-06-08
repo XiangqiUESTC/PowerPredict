@@ -33,7 +33,8 @@ class NMS(BaseProcessor):
 
         self.config = {
             "num_boxes": num_boxes,
-            "iou_threshold": iou_threshold
+            "iou_threshold": iou_threshold,
+            "device": self.device,
         }
         return self.config
 

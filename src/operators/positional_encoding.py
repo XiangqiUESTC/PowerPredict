@@ -44,7 +44,8 @@ class PositionalEncoding(BaseProcessor):
 
         self.config = {
             "seq_len": seq_len,
-            "d_model": d_model
+            "d_model": d_model,
+            "device": self.device,
         }
         return self.config
 

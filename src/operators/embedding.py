@@ -61,6 +61,7 @@ class Embedding(BaseProcessor):
             "num_embeddings": num_embeddings,
             "embedding_dim": embedding_dim,
             "input_shape": [batch_size, seq_len],
+            "device": self.device,
         }
         return self.config
 
