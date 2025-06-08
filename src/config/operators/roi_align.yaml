@@ -1,5 +1,36 @@
-mode: "random"
+mode: "increase"
 
 increase:
+  base_B: 1
+  base_C: 3
+  base_H: 32
+  base_W: 32
+  base_num_rois: 1
+  step_increment: 256
+  max_B: 16
+  max_C: 512
+  max_H: 512
+  max_W: 512
+  max_num_rois: 1024
+  output_size: [16, 16]
+  spatial_scale: 0.5
+  sampling_ratio: 2
+  aligned: true
 
 random:
+  min_B: 1
+  max_B: 8
+  min_C: 1
+  max_C: 256
+  min_H: 32
+  max_H: 128
+  min_W: 32
+  max_W: 128
+  min_num_rois: 1
+  max_num_rois: 64
+  min_pooled_size: 2
+  max_pooled_size: 14
+  spatial_scale_min: 0.1
+  spatial_scale_max: 1.0
+  sampling_ratio_options: [-1, 0, 1, 2]
+  aligned_options: [true, false]

@@ -12,12 +12,24 @@ class NMS(BaseProcessor):
         self.scores = None
         self.iou_threshold = None
 
-    def generate_config(self):
-        MAX_BOXES = 1000
-        MIN_BOXES = 10
+        if self.mode == "increase":
+            self.times = 0
+            self.num_boxes = self.start_num_boxes
+            self.max_boxes = self.max_boxes
 
-        num_boxes = random.randint(MIN_BOXES, MAX_BOXES)
-        iou_threshold = round(random.uniform(0.3, 0.7), 2)  # 比较常见的阈值范围
+    def generate_config(self):
+        if self.mode == "random":
+            num_boxes = random.randint(self.min_boxes, self.max_boxes)
+            iou_threshold = round(random.uniform(self.min_iou_threshold, self.max_iou_threshold), 2)
+
+        elif self.mode == "increase":
+            num_boxes = min(self.num_boxes + self.times * self.step_increment, self.max_boxes)
+            iou_threshold = self.base_iou_threshold + self.times * self.iou_increment
+            iou_threshold = min(round(iou_threshold, 2), 1.0)
+            self.times += 1
+
+        else:
+            raise NotImplementedError
 
         self.config = {
             "num_boxes": num_boxes,
@@ -32,14 +44,11 @@ class NMS(BaseProcessor):
         # 随机生成合法的 boxes: [x1, y1, x2, y2] 且 x2 > x1, y2 > y1
         x1 = torch.rand(num_boxes) * 512
         y1 = torch.rand(num_boxes) * 512
-        x2 = x1 + torch.rand(num_boxes) * 50 + 1  # 保证 x2 > x1
-        y2 = y1 + torch.rand(num_boxes) * 50 + 1  # 保证 y2 > y1
+        x2 = x1 + torch.rand(num_boxes) * 50 + 1
+        y2 = y1 + torch.rand(num_boxes) * 50 + 1
         self.boxes = torch.stack([x1, y1, x2, y2], dim=1).to(self.device)
 
-        # 随机置信度分数
         self.scores = torch.rand(num_boxes).to(self.device)
 
     def execute(self):
-        # 返回的是保留框的索引
-        keep_indices = nms(self.boxes, self.scores, self.iou_threshold)
-        return keep_indices
+        return nms(self.boxes, self.scores, self.iou_threshold)

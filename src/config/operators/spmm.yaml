@@ -12,3 +12,5 @@ increase:
 random:
   max_sparsity: 0.6
   min_sparsity: 0.01
+  max_dim_size: 512
+  min_dim_size: 1

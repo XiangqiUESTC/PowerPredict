@@ -1,14 +1,8 @@
 mode: "random"
+device: "cpu" # choose device from cuda,cpu
 
-increase:
-  step_increment: 64
-  start_size: 256
-  max_size: 2048
-
+increase:  # !!!try not to write any config in default.yaml if it's not used by most!!!
 
 random:
-  single_dim_max_size: 512
-  single_dim_min_size: 1
-  max_dim_num: 4
-  min_dim_num: 1
+
 

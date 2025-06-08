@@ -1,5 +1,4 @@
 from torch import nn
-
 from core.base_processor import BaseProcessor
 import random
 import torch
@@ -11,23 +10,38 @@ class LayerNorm(BaseProcessor):
         self.input_tensor = None
         self.norm_layer = None
 
+        # 递增模式初始化
+        if self.mode == "increase":
+            self.times = 0
+            # 初始化维度大小
+            self.dim_sizes = [
+                random.randint(self.min_dim_size, self.max_dim_size)
+                for _ in range(self.dim_num)
+            ]
+
     def generate_config(self):
-        # 最大维数
-        MAX_DIM_NUM = 4
-        # 最小维数
-        MIN_DIM_NUM = 1
-        # 每个维度的区间
-        SINGLE_DIM_LENGTH_MAX = 256
-        SINGLE_DIM_LENGTH_MIN = 1
+        if self.mode == "random":
+            # 使用yaml配置参数
+            k = random.randint(self.min_dim_num, self.max_dim_num)
+            arr = [
+                random.randint(self.min_dim_size, self.max_dim_size)
+                for _ in range(k)
+            ]
+            # 随机选择归一化起始维度
+            dim = random.randint(0, k - 1)
+            normalized_shape = arr[dim:]
 
-        # 随机维度数量
-        k = random.randint(MIN_DIM_NUM, MAX_DIM_NUM)
-        # 生成维度值
-        arr = [random.randint(SINGLE_DIM_LENGTH_MIN, SINGLE_DIM_LENGTH_MAX) for _ in range(k)]
+        elif self.mode == "increase":
+            # 递增维度大小
+            arr = [size + self.times * self.step_increment for size in self.dim_sizes]
+            # 使用固定归一化起始维度
+            dim = self.start_dim
+            normalized_shape = arr[dim:]
+            self.times += 1
 
-        # 随机选择从哪个维度开始normalize
-        dim = random.randint(0, k - 1)
-        normalized_shape = arr[dim:]
+        else:
+            raise NotImplementedError(f"Unsupported mode: {self.mode}")
+
         self.config = {
             "tensor_shape": arr,
             "normalized_shape": normalized_shape,
@@ -37,7 +51,11 @@ class LayerNorm(BaseProcessor):
     def setup(self):
         tensor_shape = self.config["tensor_shape"]
         normalized_shape = self.config["normalized_shape"]
+
+        # 创建并移动LayerNorm层到指定设备
         self.norm_layer = nn.LayerNorm(normalized_shape).to(self.device)
+
+        # 创建输入张量并移动到指定设备
         self.input_tensor = torch.randn(
             tensor_shape,
             dtype=torch.float,

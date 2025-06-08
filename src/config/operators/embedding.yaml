@@ -1,5 +1,18 @@
-mode: "random"
+mode: "increase"
 
 increase:
+  base_num_embeddings: 100
+  base_embedding_dim: 16
+  base_batch_size: 1
+  base_seq_len: 8
+  step_increment: 50
 
 random:
+  max_num_embeddings: 10000
+  min_num_embeddings: 10
+  max_embedding_dim: 512
+  min_embedding_dim: 4
+  max_batch_size: 64
+  min_batch_size: 1
+  max_seq_len: 128
+  min_seq_len: 1

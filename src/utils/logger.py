@@ -12,7 +12,7 @@ class Logger:
 
         # 设置控制台输出handler
         console_handler = logging.StreamHandler()
-        console_handler.setLevel(logging.DEBUG)
+        console_handler.setLevel(logging.INFO)
 
         # 日志文件绝对路径
         file_path = join(log_dir, f'{test_name}_{datetime.now().strftime("%Y-%m-%d_%H-%M-%S")}.log')

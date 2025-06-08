@@ -8,19 +8,38 @@ class Flatten(BaseProcessor):
         super().__init__(args, logger)
         self.input_tensor = None
 
+        # 递增模式初始化
+        if self.mode == "increase":
+            self.times = 0  # 运行次数计数器
+            # 初始化维度大小（随机值在[min_dim_size, max_dim_size]区间）
+            self.dim_sizes = [
+                random.randint(self.min_dim_size, self.max_dim_size)
+                for _ in range(self.dim_num)
+            ]
+
     def generate_config(self):
-        # 最大维数
-        MAX_DIM_NUM = 4
-        # 最小维数
-        MIN_DIM_NUM = 2
-        # 每个维度的区间
-        SINGLE_DIM_LENGTH_MAX = 256
-        SINGLE_DIM_LENGTH_MIN = 1
-        k = random.randint(MIN_DIM_NUM, MAX_DIM_NUM)  # 随机维度数量
-        arr = [random.randint(SINGLE_DIM_LENGTH_MIN, SINGLE_DIM_LENGTH_MAX) for _ in range(k)]  # 生成维度值
-        # 展平的开始维度
-        start_dim = random.randint(0, k - 2)
-        end_dim = random.randint(start_dim+1, k - 1)
+        if self.mode == "random":
+            # 使用yaml配置参数
+            k = random.randint(self.min_dim_num, self.max_dim_num)
+            arr = [
+                random.randint(self.min_dim_size, self.max_dim_size)
+                for _ in range(k)
+            ]
+            # 随机选择展平维度范围
+            start_dim = random.randint(0, k - 2)
+            end_dim = random.randint(start_dim + 1, k - 1)
+
+        elif self.mode == "increase":
+            # 递增维度大小
+            arr = [size + self.times * self.step_increment for size in self.dim_sizes]
+            # 使用固定维度范围
+            start_dim = self.start_dim
+            end_dim = self.end_dim
+            self.times += 1  # 更新计数器
+
+        else:
+            raise NotImplementedError(f"Unsupported mode: {self.mode}")
+
         self.config = {
             "tensor_shape": arr,
             "start_dim": start_dim,
@@ -30,11 +49,14 @@ class Flatten(BaseProcessor):
 
     def setup(self):
         tensor_shape = self.config["tensor_shape"]
-        # 生成tensor
         self.input_tensor = torch.randn(
             tensor_shape,
             dtype=torch.float,
             device=self.device)
 
     def execute(self):
-        return torch.flatten(self.input_tensor, start_dim=self.config["start_dim"], end_dim=self.config["end_dim"])
+        return torch.flatten(
+            self.input_tensor,
+            start_dim=self.config["start_dim"],
+            end_dim=self.config["end_dim"]
+        )

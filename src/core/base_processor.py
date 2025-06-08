@@ -25,9 +25,6 @@ class BaseProcessor(ABC):
         # 默认有config属性
         self.config = None
 
-        # 统一设备管理
-        self.device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
-
     @abstractmethod
     def generate_config(self):
         """
@@ -67,11 +64,11 @@ class BaseProcessor(ABC):
         final_config, config_in_mode, default_in_mode = load_config(config_path, default_config_path, self.args)
 
         self.logger.info(f"命令行参数为：\n{pprint.pformat(self.args, indent=4, width=1)}")
-        self.logger.info(f"在该参数和配置文件下，{self.__class__.__name__}算子（模型）的配置生成模式为{final_config['mode']}")
+        self.logger.debug(f"在该参数和配置文件下，{self.__class__.__name__}算子（模型）的配置生成模式为{final_config['mode']}")
 
-        self.logger.info(f"{final_config['mode']}模式下{self.__class__.__name__}算子（模型）的生成测试配置的配置："
+        self.logger.debug(f"{final_config['mode']}模式下{self.__class__.__name__}算子（模型）的生成测试配置的配置："
                          f"\n{pprint.pformat(config_in_mode, indent=4, width=1)}")
-        self.logger.info(f"{final_config['mode']}模式下通用的生成测试配置的配置："
+        self.logger.debug(f"{final_config['mode']}模式下通用的生成测试配置的配置："
                          f"\n{pprint.pformat(default_in_mode, indent=4, width=1)}")
         self.logger.info(f"最终配置："
                          f"\n{pprint.pformat(final_config, indent=4, width=1)}")
