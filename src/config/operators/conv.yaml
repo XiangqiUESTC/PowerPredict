@@ -1,8 +1,8 @@
 mode: "increase"
 
 increase:
-  max_height: 4096
-  max_width: 4096
+  max_height_in: 4096
+  max_width_in: 4096
   basicNumber: 128
 random: 
 
