@@ -1,5 +1,30 @@
-mode: "random"
+mode: "increase"
 
 increase:
+  base_input_size: 8
+  base_hidden_size: 16
+  base_num_layers: 1
+  base_seq_len: 8
+  base_batch_size: 1
+  step_increment: 16
+  max_input_size: 2048
+  max_hidden_size: 2048
+  max_num_layers: 8
+  max_seq_len: 1024
+  max_batch_size: 128
+  bidirectional: false
+  batch_first: true
 
 random:
+  max_input_size: 512
+  min_input_size: 1
+  max_hidden_size: 512
+  min_hidden_size: 1
+  max_layers: 4
+  min_layers: 1
+  max_seq_len: 100
+  min_seq_len: 1
+  max_batch_size: 64
+  min_batch_size: 1
+  bidirectional_options: [true, false]
+  batch_first: true
