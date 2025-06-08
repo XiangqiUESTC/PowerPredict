@@ -3,6 +3,6 @@ device: "cpu" # choose device from cuda,cpu
 
 increase:  # !!!try not to write any config in default.yaml if it's not used by most!!!
 
-random:
+random:  # !!!try not to write any config in default.yaml if it's not used by most!!!
 
 
