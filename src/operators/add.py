@@ -8,20 +8,33 @@ class Add(BaseProcessor):
         super().__init__(args, logger)
         self.A = None
         self.B = None
-    def generate_config(self):
-        # 最大维数
-        MAX_DIM_NUM = 4
-        # 最小维数
-        MIN_DIM_NUM = 1
-        # 每个维度的区间
-        SINGLE_DIM_LENGTH_MAX = 256
-        SINGLE_DIM_LENGTH_MIN = 1
 
-        # 随机维度数量
-        k = random.randint(MIN_DIM_NUM, MAX_DIM_NUM)
-        # 生成维度值
-        arr = [random.randint(SINGLE_DIM_LENGTH_MIN, SINGLE_DIM_LENGTH_MAX) for _ in range(k)]
-        # 生成配置字典
+        # 递增模式初始化
+        if self.mode == "increase":
+            self.times = 0  # 运行次数计数器
+            # 初始化维度大小
+            self.dim_sizes = [
+                random.randint(self.min_dim_size, self.max_dim_size)
+                for _ in range(self.dim_num)
+            ]
+
+    def generate_config(self):
+        if self.mode == "random":
+            # 使用yaml配置参数
+            k = random.randint(self.min_dim_num, self.max_dim_num)
+            arr = [
+                random.randint(self.min_dim_size, self.max_dim_size)
+                for _ in range(k)
+            ]
+
+        elif self.mode == "increase":
+            # 递增维度大小
+            arr = [size + self.times * self.step_increment for size in self.dim_sizes]
+            self.times += 1  # 更新计数器
+
+        else:
+            raise NotImplementedError(f"Unsupported mode: {self.mode}")
+
         self.config = {
             "tensor_shape": arr
         }
@@ -29,6 +42,8 @@ class Add(BaseProcessor):
 
     def setup(self):
         tensor_shape = self.config["tensor_shape"]
+
+        # 创建两个张量并移动到目标设备
         self.A = torch.randn(
             tensor_shape,
             dtype=torch.float,
