@@ -1,9 +1,13 @@
-mode: "random"
+mode: "increase"
 
 increase:
-  DIM_NUM: 3
+  MAX_DIM_NUM: 10
+  MIN_DIM_NUM: 1
   SINGLE_DIM_LENGTH_MAX: 2048
+  SINGLE_DIM_LENGTH_MIN: 1
   step_increment: 128
-
-
 random:
+  SINGLE_DIM_LENGTH_MAX: 1024
+  SINGLE_DIM_LENGTH_MIN: 1
+  MAX_DIM_NUM: 4
+  MIN_DIM_NUM: 1

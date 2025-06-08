@@ -10,7 +10,7 @@ class Add(BaseProcessor):
         self.B = None
         if self.mode == "increase":
             self.times = 0
-            self.dim = self.DIM_NUM
+            self.dim = random.randint(self.MIN_DIM_NUM, self.MAX_DIM_NUM)
             self.arr = []
             self.current_index = 0
             for i in range(self.dim):
@@ -18,29 +18,33 @@ class Add(BaseProcessor):
 
     def generate_config(self):
         # 最大维数
-        MAX_DIM_NUM = 4
-        # 最小维数
-        MIN_DIM_NUM = 1
-        # 每个维度的区间
-        SINGLE_DIM_LENGTH_MAX = 256
-        SINGLE_DIM_LENGTH_MIN = 1
 
-        # 随机维度数量
-        k = random.randint(MIN_DIM_NUM, MAX_DIM_NUM)
-        # 生成维度值
-        arr = [random.randint(SINGLE_DIM_LENGTH_MIN, SINGLE_DIM_LENGTH_MAX) for _ in range(k)]
-        # 生成配置字典
-        self.config = {
-            "tensor_shape": arr
-        }
         # return self.config
+        MAX_DIM_NUM = self.MAX_DIM_NUM
+        # 最小维数
+        MIN_DIM_NUM = self.MIN_DIM_NUM
+        # 每个维度的区间
+        SINGLE_DIM_LENGTH_MAX = self.SINGLE_DIM_LENGTH_MAX
+        SINGLE_DIM_LENGTH_MIN = self.SINGLE_DIM_LENGTH_MIN
+        # 随机维度数量
+
         if self.mode == "random":
-           pass
-        elif self.generator_config.mode == "increase":
+            k = random.randint(MIN_DIM_NUM, MAX_DIM_NUM)
+            # 生成维度值
+            arr = [random.randint(SINGLE_DIM_LENGTH_MIN, SINGLE_DIM_LENGTH_MAX) for _ in range(k)]
+            # 生成配置字典
+            self.config = {
+                "tensor_shape": arr,
+                "dim": k
+            }
+        elif self.mode == "increase":
             self.arr[self.current_index] += self.step_increment
+            if self.arr[self.current_index] > SINGLE_DIM_LENGTH_MAX:
+               self.arr[self.current_index] = SINGLE_DIM_LENGTH_MAX
             self.current_index = (self.current_index + 1) % self.dim
             self.config = {
-                "tensor_shape":self.arr
+                "tensor_shape":self.arr,
+                "dim": self.dim
             }
         else:
             raise NotImplementedError

@@ -318,7 +318,6 @@ if __name__ == '__main__':
     # 开始主循环
     for op_name in op_names:
         op = REGISTRY[op_name](args, logger)
-
         logger.info(f"对{op_name}的实验开始!测试{num_samples}次!")
         logger.info(f"默认设备是{op.device}")
         operation_monitor(
