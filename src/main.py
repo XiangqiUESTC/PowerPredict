@@ -23,7 +23,9 @@ def get_gpu_info(device, l):
         :param device: 不同的设备类型
         :return: gpu数据，包括功率、utilization、memory
     """
-    if device == "cuda":
+    if device == 'cpu':
+        return True
+    elif device == "cuda":
         try:
             output = subprocess.check_output([
                 'nvidia-smi',
