@@ -200,6 +200,7 @@ def operation_monitor(operation, operation_name, l, result_folder, num_sample=1,
                 if f:
                     # 此次error
                     continue
+                torch.cuda.empty_cache()  # 释放缓存
                 # 记录时间戳
                 end_time_ns = time.time_ns()
                 # 记录持续时间（毫秒）
