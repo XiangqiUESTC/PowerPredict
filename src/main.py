@@ -23,6 +23,11 @@ def get_gpu_info(device, l):
         :param device: 不同的设备类型
         :return: gpu数据，包括功率、utilization、memory
     """
+    if not isinstance(device, str):
+        exc = TypeError("设备应该是一个字符串！")
+        l.exception(exc)
+        raise exc
+
     if device == 'cpu':
         return True
     elif device == "cuda":
