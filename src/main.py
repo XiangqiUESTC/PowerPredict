@@ -154,7 +154,11 @@ def operation_monitor(operation, operation_name, l, result_folder, num_sample=1,
                 try:
                     operation.setup()
                 except Exception as error:
-                    l.exception(error)
+                    if isinstance(error, torch.OutOfMemoryError):
+                        torch.cuda.empty_cache()
+                        l.info("显存溢出，清除显存")
+                    else:
+                        l.exception(error)
                     continue
 
                 # 预热GPU
