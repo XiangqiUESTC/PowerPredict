@@ -19,7 +19,7 @@ class Cat(BaseProcessor):
                                   range(self.tensor_num)]
             self.base_shapes = [random.randint(self.min_dim_size, self.max_dim_size) for _ in range(self.dim_num)]
 
-            self.cat_dim = random.randint(0, self.dim_num)
+            self.cat_dim = random.randint(0, self.dim_num - 1)
 
     def generate_config(self):
         if self.mode == "random":
