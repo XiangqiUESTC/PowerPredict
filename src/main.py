@@ -30,7 +30,7 @@ def get_gpu_info(device, l):
 
     if device == 'cpu':
         return True
-    elif device == "cuda":
+    elif device.startswith("cuda"):
         try:
             output = subprocess.check_output([
                 'nvidia-smi',
