@@ -6,7 +6,7 @@ increase:
   base_H: 32
   base_W: 32
   base_num_rois: 1
-  step_increment: 256
+  step_increment: 32
   max_B: 16
   max_C: 512
   max_H: 512
