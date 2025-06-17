@@ -111,12 +111,13 @@ def gpu_monitor_thread_func(logfile, stop_flag, l, device):
             if info:
                 f.write(f"{timestamp}, {info}\n")
 
-def operation_monitor(operation, operation_name, l, num_sample=1, loop_per_sample=64, preheat=80):
+def operation_monitor(operation, operation_name, l, result_folder, num_sample=1, loop_per_sample=64, preheat=80):
     """
     ARGS:
         operation: operation是基本的算子或者模型,同时是base_operation的实现类的实例对象
         operation_name: 算子的名称,用于命名最后的文件
         l: 日志实例对象
+        result_folder:
         num_sample=1: 该算子要测试的默认数据组数
         loop_per_sample=64: 每个算子重复测试的次数,最后取平均
         preheat=80: 预热次数
@@ -130,9 +131,9 @@ def operation_monitor(operation, operation_name, l, num_sample=1, loop_per_sampl
     file_date = datetime.now().strftime("%Y-%m-%d_%H-%M-%S")
     # csv中间文件夹
     temp_dir = join(abspath(dirname(dirname(abspath(__file__)))), "temp")
-    # csv结果文件夹
-    result_folder = operation.test_name + "__" + file_date
+
     result_dir = join(abspath(dirname(dirname(abspath(__file__)))), "results", result_folder)
+
     # 最终结果
     records = {}
 
@@ -205,7 +206,7 @@ def operation_monitor(operation, operation_name, l, num_sample=1, loop_per_sampl
                 gpu_thread.join()
 
                 # 保证采样完整
-                time.sleep(12)
+                time.sleep(4)
 
                 # 解析GPU功耗数据
                 powers = []
@@ -334,6 +335,15 @@ if __name__ == '__main__':
     logger.info(f"命令行参数解析完成，开始实验，测试的算子或模型有：\n{op_names}")
     logger.info(f"每个算子或模型测试{num_samples}次")
 
+    # 拿一个op来获得一下test_name
+    date = datetime.now().strftime("%Y-%m-%d_%H-%M-%S")
+    test_name = None
+    for op_name in op_names:
+        op = REGISTRY[op_name](args, logger)
+        test_name = op.test_name
+        break
+    results_folder = test_name + "__" + date
+
     # 开始主循环
     for op_name in op_names:
         op = REGISTRY[op_name](args, logger)
@@ -343,6 +353,7 @@ if __name__ == '__main__':
             op,
             op_name,
             logger,
+            results_folder,
             num_samples,
         )
         logger.info(f"对算子{op_name}的{num_samples}次测试结束!")
