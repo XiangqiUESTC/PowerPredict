@@ -110,12 +110,13 @@ def operation_monitor(operation, operation_name, l, num_sample=1, loop_per_sampl
     """
     file_name = operation_name + ".csv"
 
+    # 文件日期
+    file_date = datetime.now().strftime("%Y-%m-%d_%H-%M-%S")
     # csv中间文件夹
     temp_dir = join(abspath(dirname(dirname(abspath(__file__)))), "temp")
     # csv结果文件夹
-    result_dir = join(abspath(dirname(dirname(abspath(__file__)))), "results")
-    # 文件日期
-    file_date = datetime.now().strftime("%Y-%m-%d_%H-%M-%S")
+    result_folder = operation.test_name + "__" + file_date
+    result_dir = join(abspath(dirname(dirname(abspath(__file__)))), "results", result_folder)
     # 最终结果
     records = {}
 
@@ -188,7 +189,7 @@ def operation_monitor(operation, operation_name, l, num_sample=1, loop_per_sampl
                 gpu_thread.join()
 
                 # 保证采样完整
-                time.sleep(1)
+                time.sleep(12)
 
                 # 解析GPU功耗数据
                 powers = []

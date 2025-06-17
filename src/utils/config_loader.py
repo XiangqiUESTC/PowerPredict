@@ -56,6 +56,10 @@ def load_config(self_config_path, default_config_path, args):
     if config:
         final_config.update(config)
     # 添加一般字段
+    for key, value in default_config_dict_copy.items():
+        if not isinstance(value, dict):
+            final_config[key] = value
+    # 添加一般字段
     for key, value in self_config_dict_copy.items():
         if not isinstance(value, dict):
             final_config[key] = value
