@@ -31,14 +31,25 @@ def get_gpu_info(device, l):
     if device == 'cpu':
         return True
     elif device.startswith("cuda"):
+        # 默认使用第一个设备
+        device_num = 0
+        # 从device字符串中提取设备编号
+        if ':' in device:
+            try:
+                # 提取冒号后的数字部分
+                device_num = int(device.split(':')[1])
+            except (ValueError, IndexError):
+                # 处理无效的设备编号格式
+                print(f"警告: 无效的设备格式 '{device}'，默认使用设备0")
+                device_num = 0
         try:
             output = subprocess.check_output([
                 'nvidia-smi',
                 '--query-gpu=power.draw,utilization.gpu,memory.used',
                 '--format=csv,noheader,nounits'
             ])
-            info = output.decode('utf-8').strip()
-            return info
+            info = output.decode('utf-8').strip().splitlines()
+            return info[device_num]
         except Exception as e:
             l.error(f"获取{device}设备信息出错")
             l.exception(e)
