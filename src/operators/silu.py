@@ -11,10 +11,10 @@ class SiLU(BaseProcessor):
         self.current_index = 0
 
     def generate_config(self):
-        MAX_DIM_NUM = self.MAX_DIM_NUM
-        MIN_DIM_NUM = self.MIN_DIM_NUM
-        SINGLE_DIM_LENGTH_MAX = self.SINGLE_DIM_LENGTH_MAX
-        SINGLE_DIM_LENGTH_MIN = self.SINGLE_DIM_LENGTH_MIN
+        MAX_DIM_NUM = int(self.MAX_DIM_NUM)
+        MIN_DIM_NUM = int(self.MIN_DIM_NUM)
+        SINGLE_DIM_LENGTH_MAX = int(self.SINGLE_DIM_LENGTH_MAX)
+        SINGLE_DIM_LENGTH_MIN = int(self.SINGLE_DIM_LENGTH_MIN)
         k = random.randint(MIN_DIM_NUM, MAX_DIM_NUM)
         arr = [self.BASIC_NUMBER for _ in range(k)]
         if self.mode == "random":
