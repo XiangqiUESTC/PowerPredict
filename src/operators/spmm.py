@@ -41,7 +41,7 @@ class Spmm(BaseProcessor):
             m = self.m + (self.times//3 + int(self.times % 3 >= 0)) * self.step_increment
             n = self.n + (self.times//3 + int(self.times % 3 >= 1)) * self.step_increment
             p = self.p + (self.times//3 + int(self.times % 3 >= 2)) * self.step_increment
-            sparsity = round(self.start_sparsity + self.sparsity_increment * self.times, 3)
+            sparsity = round(min(self.start_sparsity + self.sparsity_increment * self.times, self.sparsity_max), 3)
 
             nnz = math.floor(m * p * sparsity)
 

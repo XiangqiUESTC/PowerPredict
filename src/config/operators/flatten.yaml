@@ -1,9 +1,9 @@
 mode: "increase"
 
 increase:
-  max_dim_size: 64
-  min_dim_size: 1
-  step_increment: 4
+  max_dim_size: 32
+  min_dim_size: 16
+  step_increment: 2
   dim_num: 4
   start_dim: 0
   end_dim: 3
