@@ -15,6 +15,7 @@ from models import *
 import os
 from utils.logger import Logger
 from utils.csv_utils import write_csv
+from monitor.monitor_hardware import monitor_main
 
 
 def get_gpu_info(device, l):
@@ -284,6 +285,13 @@ def operation_monitor(operation, operation_name, l, result_folder, num_sample=1,
 
 # ----------------- 主函数 -----------------
 if __name__ == '__main__':
+    # 运行监测程序
+    monitor_flag = {
+        "flag": True
+    }
+    monitor_thread = threading.Thread(target=monitor_main, args=[monitor_flag])
+    monitor_thread.start()
+
     # 同时注册算子和模型
     REGISTRY = {
         **OPERATOR_REGISTRY,
@@ -366,3 +374,9 @@ if __name__ == '__main__':
             "--------------------------------------------------------------------------------------------------------------------------------------")  #分割
 
     logger.info("实验结束！")
+
+    # 结束控制进程
+    monitor_flag["flag"] = False
+    monitor_thread.join()
+
+    exit(1)

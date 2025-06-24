@@ -9,7 +9,7 @@ import sys
 from collections import deque
 
 # ==== 配置区域 ====
-OUTPUT_DIR = "./"
+OUTPUT_DIR = "../results/"
 TOTAL_LOG = os.path.join(OUTPUT_DIR, "total_monitor_log.csv")
 CPU_LOG = os.path.join(OUTPUT_DIR, "cpu_util_log.csv")
 GPU_LOG = os.path.join(OUTPUT_DIR, "gpu_power_log.csv")
@@ -64,9 +64,9 @@ def write_csv_rows(filename, headers, data_batch):
         writer.writerows(data_batch)
 
 # ==== 各设备线程 ====
-def monitor_and_save_cpu():
+def monitor_and_save_cpu(monitor_flag):
     last_save = time.time()
-    while monitoring:
+    while monitor_flag["flag"]:
         ts = datetime.datetime.now().isoformat()
         val = get_cpu_util()
         cpu_data.append([ts, val])
@@ -114,9 +114,9 @@ def get_gpu_power():
         return None
 
 
-def monitor_and_save_gpu():
+def monitor_and_save_gpu(monitor_flag):
     last_save = time.time()
-    while monitoring:
+    while monitor_flag["flag"]:
         ts = datetime.datetime.now().isoformat()
         gpu_power,gpu_temp = get_gpu_power()
         gpu_data.append([ts, gpu_power,gpu_temp])
@@ -130,9 +130,9 @@ def monitor_and_save_gpu():
 
 
 
-def monitor_and_save_mem():
+def monitor_and_save_mem(monitor_flag):
     last_save = time.time()
-    while monitoring:
+    while monitor_flag["flag"]:
         ts = datetime.datetime.now().isoformat()
         val = get_memory_percent()
         mem_data.append([ts, val])
@@ -143,9 +143,9 @@ def monitor_and_save_mem():
             last_save = time.time()
         time.sleep(fast_interval)
 
-def monitor_and_save_disk():
+def monitor_and_save_disk(monitor_flag):
     last_save = time.time()
-    while monitoring:
+    while monitor_flag["flag"]:
         ts = datetime.datetime.now().isoformat()
         read, write = get_disk_io()
         disk_data.append([ts, read, write])
@@ -156,9 +156,9 @@ def monitor_and_save_disk():
             last_save = time.time()
         time.sleep(fast_interval)
 
-def monitor_and_save_total():
+def monitor_and_save_total(monitor_flag):
     last_save = time.time()
-    while monitoring:
+    while monitor_flag["flag"]:
         ts = datetime.datetime.now().isoformat()
         mem = get_memory_percent()
         read, write = get_disk_io()
@@ -173,41 +173,45 @@ def monitor_and_save_total():
         time.sleep(total_interval)
 
 # ==== 启动程序 ====
-if __name__ == "__main__":
-    try:
-        print(" 正在启动设备采集线程...")
-        threads = [
-            threading.Thread(target=monitor_and_save_cpu),
-            threading.Thread(target=monitor_and_save_gpu),
-            threading.Thread(target=monitor_and_save_mem),
-            threading.Thread(target=monitor_and_save_disk),
-            threading.Thread(target=monitor_and_save_total),
-        ]
+def monitor_main(flag):
+    monitor_flag = {"flag": True}
+    print(" 正在启动设备采集线程...")
+    threads = [
+        threading.Thread(target=monitor_and_save_cpu, args=[monitor_flag]),
+        threading.Thread(target=monitor_and_save_gpu, args=[monitor_flag]),
+        threading.Thread(target=monitor_and_save_mem, args=[monitor_flag]),
+        threading.Thread(target=monitor_and_save_disk, args=[monitor_flag]),
+        threading.Thread(target=monitor_and_save_total, args=[monitor_flag]),
+    ]
 
-        for t in threads:
-            t.start()
+    for t in threads:
+        t.start()
 
-        print("📡 正在采集设备数据，按 Ctrl+C 停止...")
-        while True:
-            time.sleep(1)
+    print("📡 正在采集设备数据，按 Ctrl+C 停止...")
 
-    except KeyboardInterrupt:
-        print("\n 收到中断信号，正在停止采集...")
-        monitoring = False
-        for t in threads:
-            t.join()
+    # 如果flag为True，一直保持运行，轮询式运行，否则停止所有进程
+    while flag["flag"]:
+        time.sleep(1)
 
-        # 最后一批未写入的数据（防丢失）
-        if cpu_data:
-            write_csv_rows(CPU_LOG, ["timestamp", "cpu_util_percent"], list(cpu_data))
-        if gpu_data:
-            write_csv_rows(GPU_LOG, ["timestamp", "gpu_power_watts","gpu_temperature"], list(gpu_data))
-        if mem_data:
-            write_csv_rows(MEM_LOG, ["timestamp", "mem_percent"], list(mem_data))
-        if disk_data:
-            write_csv_rows(DISK_LOG, ["timestamp", "disk_read_bytes", "disk_write_bytes"], list(disk_data))
-        if total_data:
-            write_csv_rows(TOTAL_LOG, ["timestamp", "mem_percent", "disk_read_bytes", "disk_write_bytes", "gpu_power_watts", "cpu_util_percent"], list(total_data))
+    print("\n 收到中断信号，正在停止采集...")
+    monitor_flag["flag"] = False
 
-        print(" 所有数据保存完毕。程序退出。")
-        sys.exit(0)
+    for t in threads:
+        t.join()
+
+    # 最后一批未写入的数据（防丢失）
+    if cpu_data:
+        write_csv_rows(CPU_LOG, ["timestamp", "cpu_util_percent"], list(cpu_data))
+    if gpu_data:
+        write_csv_rows(GPU_LOG, ["timestamp", "gpu_power_watts", "gpu_temperature"], list(gpu_data))
+    if mem_data:
+        write_csv_rows(MEM_LOG, ["timestamp", "mem_percent"], list(mem_data))
+    if disk_data:
+        write_csv_rows(DISK_LOG, ["timestamp", "disk_read_bytes", "disk_write_bytes"], list(disk_data))
+    if total_data:
+        write_csv_rows(TOTAL_LOG,
+                       ["timestamp", "mem_percent", "disk_read_bytes", "disk_write_bytes", "gpu_power_watts",
+                        "cpu_util_percent"], list(total_data))
+
+    print(" 所有数据保存完毕。程序退出。")
+    sys.exit(0)
