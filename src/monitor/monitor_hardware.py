@@ -3,6 +3,8 @@ import datetime
 import csv
 import subprocess
 import threading
+from os.path import dirname
+
 import psutil
 import os
 import sys
@@ -56,6 +58,8 @@ def get_disk_io():
 
 # ==== 数据写入函数 ====
 def write_csv_rows(filename, headers, data_batch):
+    # 新增目录创建逻辑
+    os.makedirs(dirname(filename), exist_ok=True)
     write_header = not os.path.exists(filename) or os.stat(filename).st_size == 0
     with open(filename, 'a', newline='') as f:
         writer = csv.writer(f)
