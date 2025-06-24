@@ -42,13 +42,10 @@ def load_config(self_config_path, default_config_path, args):
 
     # 最终的配置生成模式的决定顺序:命令行mode参数>算子（模型）的yaml文件mode配置>默认的配置文件的mode配置
     final_mode = self_config_dict_copy["mode"]
-
     # config是独属于具体的算子的模式配置
     config = self_config_dict_copy.get(final_mode, {})
-
     # default_config是所有算子通用的配置
     final_config = default_config_dict_copy.get(final_mode, {})
-
     if final_config is None:
         final_config = {}
 
