@@ -3,7 +3,7 @@ mode: "increase"
 increase:
   max_dim_size: 512
   min_dim_size: 1
-  step_increment: 8
+  step_increment: 6
   dim_num: 3
   start_dim: 0
 

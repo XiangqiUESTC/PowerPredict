@@ -5,7 +5,7 @@ increase:
   base_embedding_dim: 16
   base_batch_size: 1
   base_seq_len: 8
-  step_increment: 50
+  step_increment: 64
 
 random:
   max_num_embeddings: 10000

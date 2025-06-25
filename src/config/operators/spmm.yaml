@@ -1,7 +1,7 @@
 mode: "random"
 
 increase:
-  step_increment: 128
+  step_increment: 64
   start_sparsity: 0.01
   sparsity_max: 0.5
   sparsity_increment: 0.01

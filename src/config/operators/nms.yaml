@@ -2,13 +2,13 @@ mode: "increase"
 
 random:
   min_boxes: 10
-  max_boxes: 1000
+  max_boxes: 8192
   min_iou_threshold: 0.3
   max_iou_threshold: 0.7
 
 increase:
   start_num_boxes: 50
   step_increment: 8
-  max_boxes: 1000
+  max_boxes: 8192
   base_iou_threshold: 0.3
   iou_increment: 0.05

@@ -4,8 +4,8 @@ increase:
   base_seq_len: 256
   base_d_model: 512
   step_increment: 256
-  max_seq_len: 4096
-  max_d_model: 4096
+  max_seq_len: 8192
+  max_d_model: 8192
 
 random:
   min_seq_len: 4
