@@ -7,3 +7,4 @@ dataset/**
 data/**
 **/log/**
 **/utils/data/**
+**/__pycache__/**
