@@ -190,7 +190,7 @@ def monitor_main(logger, flag):
     while flag["flag"]:
         time.sleep(1)
 
-    logger.info("\n 收到中断信号，正在停止采集...")
+    logger.info("收到中断信号，正在停止采集...")
     # 设置终止信号，终止各个线程
     monitor_flag["flag"] = False
 
