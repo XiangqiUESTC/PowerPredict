@@ -4,7 +4,6 @@ from os.path import dirname, join, abspath
 import time
 import threading
 import subprocess
-import csv
 from datetime import datetime
 from utils.device import is_device_avail_on_torch
 
@@ -15,7 +14,7 @@ from models import *
 import os
 from utils.logger import Logger
 from utils.csv_utils import write_csv
-from monitor.monitor_hardware import monitor_main
+from thirdparty.monitor_hardware import monitor_main
 from monitor.gpu import get_gpu_model
 
 
@@ -287,29 +286,15 @@ def operation_monitor(operation, operation_name, l, result_folder, num_sample=1,
 
 # ----------------- 主函数 -----------------
 if __name__ == '__main__':
+    # 初始化日志器
+    log_dir = join(abspath(dirname(dirname(abspath(__file__)))), "log")
+    logger = Logger(log_dir)
+
     # 同时注册算子和模型
     REGISTRY = {
         **OPERATOR_REGISTRY,
         **MODEL_REGISTRY,
     }
-
-    # 默认测试所有
-    op_names = [
-        *REGISTRY.keys()
-    ]
-
-    num_samples = 3
-
-    # 初始化日志
-    log_dir = join(abspath(dirname(dirname(abspath(__file__)))), "log")
-    logger = Logger(log_dir)
-
-    # 运行监测程序
-    monitor_flag = {
-        "flag": True
-    }
-    monitor_thread = threading.Thread(target=monitor_main, args=(logger, monitor_flag))
-    monitor_thread.start()
 
     # 解析命令行中的名称参数
     argv = deepcopy(sys.argv)
@@ -322,30 +307,42 @@ if __name__ == '__main__':
             key = splits[0]
             value = splits[1]
             args[key] = value
+            # 注意这里是i+1,因为截取的时候从第二个参数截取的
             index_to_del.append(i + 1)
 
+    # 从后往前删，避免出错
     index_to_del.reverse()
-
     for i in index_to_del:
         del argv[i]
 
-    # 解析命令
-    if len(argv) < 2:
-        logger.warning("没有提供要测试的算子名称和测试次数！将运行默认测试用例!")
-    elif len(argv) < 3:
-        logger.warning(f"没有指定测试次数！默认每个项目测试{num_samples}次")
+
+    # 解析剩余的命令，获取必要的参数
+    op_names = None
+    num_samples = None
+
+    if len(argv) < 3:
+        logger.error("Usage:python main.py [op_1,op_2,...] test_rounds")
+        logger.error("未能启动实验，请提供算子或模型名及测试次数！")
     else:
+        # 解析剩余的参数
+        # 首先检查有没有未实现的算子和模型名
         op_names = argv[1].split(",")
         not_implements = [op_name for op_name in op_names if op_name not in REGISTRY]
         if len(not_implements) > 0:
             logger.error(f"找不到算子或模型{not_implements}，您确定在operator或models模块下实现"
                          f"并在OPERATOR_REGISTRY或MODEL_REGISTRY中注册了它吗？")
+            # 如果有就退出程序
             exit(-1)
         try:
             num_samples = int(argv[2])
         except ValueError as e:
-            logger.error(f"参数2必须是个整数！而不是{argv[2]}")
+            logger.error(f"argument 2必须是个整数！而不是{argv[2]}")
+            # 如果第二个参数不是整数就退出
             exit(-1)
+        # 如果有多余的参数,进行警告,仍然运行
+        if len(argv)>3:
+            logger.warning(f"忽略多余参数:{argv[3:]}")
+
 
     logger.info(f"命令行参数解析完成，开始实验，测试的算子或模型有：\n{op_names}")
     logger.info(f"每个算子或模型测试{num_samples}次")
@@ -358,6 +355,14 @@ if __name__ == '__main__':
         test_name = op.test_name
         break
     results_folder = test_name + "__" + date
+
+    # 运行第三方监测程序
+    monitor_flag = {
+        "flag": True
+    }
+    monitor_thread = threading.Thread(target=monitor_main, args=(logger, monitor_flag))
+    monitor_thread.start()
+
 
     # 开始主循环
     for op_name in op_names:
