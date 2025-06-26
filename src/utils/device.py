@@ -1,7 +1,6 @@
 import torch
 
 def is_device_avail_on_torch(device):
-
     if not isinstance(device, str):
         raise TypeError("设备应该是一个字符串！")
     if device == "cpu":

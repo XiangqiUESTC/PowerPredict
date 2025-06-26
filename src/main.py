@@ -16,6 +16,7 @@ import os
 from utils.logger import Logger
 from utils.csv_utils import write_csv
 from monitor.monitor_hardware import monitor_main
+from monitor.gpu import get_gpu_model
 
 
 def get_gpu_info(device, l):
@@ -246,6 +247,7 @@ def operation_monitor(operation, operation_name, l, result_folder, num_sample=1,
                     "avg_gpu_utils": avg_utils,
                     "max_gpu_memory_used": max_memory_used,
                     "avg_gpu_memory_used": avg_memory_used,
+                    "gpu_model": get_gpu_model(op.device),
                 }
 
                 # 计算时间
