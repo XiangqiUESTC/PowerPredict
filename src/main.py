@@ -285,13 +285,6 @@ def operation_monitor(operation, operation_name, l, result_folder, num_sample=1,
 
 # ----------------- 主函数 -----------------
 if __name__ == '__main__':
-    # 运行监测程序
-    monitor_flag = {
-        "flag": True
-    }
-    monitor_thread = threading.Thread(target=monitor_main, args=[monitor_flag])
-    monitor_thread.start()
-
     # 同时注册算子和模型
     REGISTRY = {
         **OPERATOR_REGISTRY,
@@ -308,6 +301,13 @@ if __name__ == '__main__':
     # 初始化日志
     log_dir = join(abspath(dirname(dirname(abspath(__file__)))), "log")
     logger = Logger(log_dir)
+
+    # 运行监测程序
+    monitor_flag = {
+        "flag": True
+    }
+    monitor_thread = threading.Thread(target=monitor_main, args=(logger, monitor_flag))
+    monitor_thread.start()
 
     # 解析命令行中的名称参数
     argv = deepcopy(sys.argv)
