@@ -6,7 +6,7 @@ increase:
   base_num_layers: 1
   base_seq_len: 8
   base_batch_size: 1
-  step_increment: 4
+  step_increment: 2
   max_input_size: 2048
   max_hidden_size: 2048
   max_num_layers: 8
