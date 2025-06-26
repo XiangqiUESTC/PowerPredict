@@ -6,3 +6,8 @@ increase:  # !!!try not to write any config in default.yaml if it's not used by 
 random:  # !!!try not to write any config in default.yaml if it's not used by most!!!
 
 test_name: "test"
+
+cpu_info: false
+gpu_info: true
+disk_info: false
+memory_info: false
