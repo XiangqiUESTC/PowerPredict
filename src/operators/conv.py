@@ -70,17 +70,15 @@ class Conv2D(BaseProcessor):
                 self.height_in = self.max_height_in
             if self.width_in > self.max_width_in:
                 self.width_in = self.max_width_in
-            while True:
-                kernel_size = random.choice([1, 3, 5, 7])
-                stride = random.choice([1, 2, 3])
-                max_padding = kernel_size // 2
-                padding = random.randint(0, max_padding)
+            # while True:
+            kernel_size = 3 #random.choice([1, 3, 5, 7])
+            stride = 1 #random.choice([1, 2, 3])
+            padding = 1
                 # 计算理论输出尺寸
-                H_out = (self.height_in + 2 * padding - kernel_size) // stride + 1
-                W_out = (self.width_in + 2 * padding - kernel_size) // stride + 1
+            H_out = (self.height_in + 2 * padding - kernel_size) // stride + 1
+            W_out = (self.width_in + 2 * padding - kernel_size) // stride + 1
                 # 验证输出尺寸有效性
-                if H_out >= 1 and W_out >= 1:
-                    break
+
             self.config = {
                 "tensor_shape": (C_in, self.height_in, self.width_in),  # 输入形状 (C_in, H_in, W_in)
                 "kernel_size": kernel_size,
