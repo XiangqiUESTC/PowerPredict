@@ -7,6 +7,9 @@ random:  # !!!try not to write any config in default.yaml if it's not used by mo
 
 test_name: "test"
 
+sleep_time: 10
+loop_per_sample: 30
+
 cpu_info: false
 gpu_info: true
 disk_info: false

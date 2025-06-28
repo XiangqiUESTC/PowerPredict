@@ -113,7 +113,7 @@ def gpu_monitor_thread_func(logfile, stop_flag, l, device):
             if info:
                 f.write(f"{timestamp}, {info}\n")
 
-def operation_monitor(operation, operation_name, l, result_folder, num_sample=1, loop_per_sample=64, preheat=80):
+def operation_monitor(operation, operation_name, l, result_folder, num_sample=1, preheat=80):
     """
     ARGS:
         operation: operation是基本的算子或者模型,同时是base_operation的实现类的实例对象
@@ -121,7 +121,6 @@ def operation_monitor(operation, operation_name, l, result_folder, num_sample=1,
         l: 日志实例对象
         result_folder:
         num_sample=1: 该算子要测试的默认数据组数
-        loop_per_sample=64: 每个算子重复测试的次数,最后取平均
         preheat=80: 预热次数
 
     DESCRIPTION:
@@ -189,7 +188,7 @@ def operation_monitor(operation, operation_name, l, result_folder, num_sample=1,
                 start_time_ns = time.time_ns()
                 # 重复执行，不断采样
                 f = False
-                for _ in range(loop_per_sample):
+                for _ in range(op.loop_per_sample):
                     try:
                         operation.execute()
                     except Exception as error:
@@ -212,8 +211,8 @@ def operation_monitor(operation, operation_name, l, result_folder, num_sample=1,
                 stop_gpu["stop"] = True
                 gpu_thread.join()
 
-                # 保证采样完整
-                time.sleep(4)
+                # 保证采样完整，睡眠时间调整
+                time.sleep(op.sleep_time)
 
                 # 解析GPU功耗数据
                 powers = []
@@ -251,7 +250,7 @@ def operation_monitor(operation, operation_name, l, result_folder, num_sample=1,
                 }
 
                 # 计算时间
-                duration = round((end_time_ns - start_time_ns) / loop_per_sample, 2)
+                duration = round((end_time_ns - start_time_ns) / op.loop_per_sample, 2)
 
                 other_data = {
                     "duration": duration,
@@ -273,7 +272,7 @@ def operation_monitor(operation, operation_name, l, result_folder, num_sample=1,
                         records[k].append(v)
 
             except Exception as error:
-                logger.error(f"{operation_name}第{j + 1}/{loop_per_sample}次重复测试失败，原因是：\n")
+                logger.error(f"{operation_name}第{j + 1}/{op.loop_per_sample}次重复测试失败，原因是：\n")
                 logger.exception(error)
         # 开始写最终的数据
         result_file = join(result_dir, file_name)
