@@ -290,12 +290,6 @@ if __name__ == '__main__':
     log_dir = join(abspath(dirname(dirname(abspath(__file__)))), "log")
     logger = Logger(log_dir)
 
-    # 同时注册算子和模型
-    REGISTRY = {
-        **OPERATOR_REGISTRY,
-        **MODEL_REGISTRY,
-    }
-
     # 解析命令行中的名称参数
     argv = deepcopy(sys.argv)
     args = {}
@@ -326,6 +320,11 @@ if __name__ == '__main__':
     else:
         # 解析剩余的参数
         # 首先检查有没有未实现的算子和模型名
+        # 同时注册算子和模型
+        REGISTRY = {
+            **OPERATOR_REGISTRY,
+            **MODEL_REGISTRY,
+        }
         op_names = argv[1].split(",")
         not_implements = [op_name for op_name in op_names if op_name not in REGISTRY]
         if len(not_implements) > 0:
