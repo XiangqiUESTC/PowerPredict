@@ -13,18 +13,21 @@ import torch
 import threading
 import time
 
-# 同时注册算子和模型
 
-
-def run_and_monitor(args, logger, op_names, num_samples):
+def run_all_and_monitor(args, logger, op_names, num_samples, result_folder):
     """
         ARGS:
-            args: operation是基本的算子或者模型,同时是base_operation的实现类的实例对象
-            logger: 算子的名称,用于命名最后的文件
-            op_names: 日志实例对象
-            num_samples: 该算子要测试的默认数据组数
+            args: args是命令行参数
+            logger: logger是日志器
+            op_names: op_names是所有的要测试的算子名称
+            num_samples: num_samples是所有算子要测试的次数
+            result_folder: result_folder是结果文件夹
         DESCRIPTION:
-            创建，分别监控该算子在运算时的CPU和GPU数据，分析并合并输出为csv
+            在run_all_and_monitor主程序中，会运行各个根据args装配各个算子的配置，并将每个算子运行num_samples次
+            算子的配置包含其基本的各类测试模式生成测试配置所需的参数、所需要的收集的数据的集合（GPU、CPU、Disk、Memory等）
+            还有所测试的设备名等
+
+            对于所需要的收集的数据，每类数据都会创建一个线程用于收集数据
         """
     # 记录开始时间
     # 注册所有的算子和模型
@@ -41,19 +44,19 @@ def run_and_monitor(args, logger, op_names, num_samples):
 
         file_name = op_name + ".csv"
 
-        # 文件日期
-        file_date = datetime.now().strftime("%Y-%m-%d_%H-%M-%S")
-        # csv中间文件夹
-        temp_dir = join(abspath(dirname(dirname(abspath(__file__)))), "temp")
-
-        result_dir = join(abspath(dirname(dirname(abspath(__file__)))), "results", result_folder)
-
         # 最终结果
         records = {}
 
-        # 获取当前的设备设置信息
+        # 获取运行算子所必要的信息：所指定的设备、一次实验重复的次数、实验间的间隔时间、预热次数
+        # 设备信息：
         device = operator.device
         device_avail = is_device_avail_on_torch(device)
+        # 重复次数：
+        loop_per_sample = operator.loop_per_sample
+        # 实验间的间隔时间：
+        sleep_time = operator.sleep_time
+        # 预热次数：
+        preheat = operator.preheat
 
         # 如果设备正常，运行测试
         if device_avail:
@@ -61,40 +64,52 @@ def run_and_monitor(args, logger, op_names, num_samples):
             for j in range(num_samples):
                 try:
                     # 开始测试
-                    logger.info(f"Test Case {j + 1} for {op_name}: Starting monitoring and computation...")
+                    logger.info(f"开始对{op_name}的第{j + 1}次测试...")
+
                     # 生成此次测试的配置
                     _ = operator.generate_config()
-                    # 装配数据
+
+                    # 装配数据，此处要进行错误捕获，特别注意显存溢出错误，由于不知道模式，所以不会因为一次显存爆了就终止之后的实验，仍应继续实验
                     try:
                         operator.setup()
                     except Exception as error:
+                        logger.error("根据装配测试所需的数据时出错！原因如下：")
+                        logger.exception(error)
                         if isinstance(error, torch.OutOfMemoryError):
+                            logger.info("将清除显存")
                             torch.cuda.empty_cache()
-                            logger.info("显存溢出，清除显存")
-                        else:
-                            logger.exception(error)
                         continue
 
                     # 预热GPU
                     try:
-                        for i_ in range(preheat):
+                        for _ in range(preheat):
                             # 创建两个随机矩阵（尺寸可根据需要调整）
                             a = torch.randn(100, 100).to(
                                 torch.device("cuda" if torch.cuda.is_available() else "cpu"))  # 100x100矩阵
                             b = torch.randn(100, 100).to(torch.device("cuda" if torch.cuda.is_available() else "cpu"))
                             # 执行矩阵乘法 → 触发CUDA核函数
-                            c = torch.matmul(a, b)  # 结果矩阵 100x100
-
+                            # 结果矩阵 100x100
+                            c = torch.matmul(a, b)
                     except Exception as error:
-                        logger.error(f"预热失败: {str(error)}")
-                        torch.cuda.empty_cache()  # 显存异常时清空缓存
+                        logger.error(f"预热失败，原因是：")
+                        logger.exception(error)
+                        # 显存异常时清空缓存
+                        torch.cuda.empty_cache()
                         continue
 
-                    # 启动GPU监控线程(此处的gpu可能是cuda，也可能是xpu、npu等)
-                    gpu_log = join(temp_dir, f'gpu_{operation_name}_{file_date}.csv')
-                    stop_gpu = {"stop": False}
-                    gpu_thread = threading.Thread(target=gpu_monitor_thread_func, args=(gpu_log, stop_gpu, l, device))
-                    gpu_thread.start()
+                    # 准备正式开始实验，准备好监控线程
+                    threads = []
+                    flags = []
+                    datas = []
+                    params = []
+                    if operator.cpu_info:
+                        pass
+                    if operator.gpu_info:
+                        pass
+                    if operator.disk_info:
+                        pass
+                    if operator.memory_info:
+                        pass
 
                     # 记录时间戳
                     start_time = datetime.now().isoformat()
@@ -121,47 +136,15 @@ def run_and_monitor(args, logger, op_names, num_samples):
                     # 记录持续时间（毫秒）
                     end_time = datetime.now().isoformat()
 
-                    # 结束监控线程
-                    stop_gpu["stop"] = True
-                    gpu_thread.join()
+                    # 结束各个进程
+                    for flag in flags:
+                        flag["flag"] = False
+                    # 同步
+                    for thread in threads:
+                        thread.join()
 
                     # 保证采样完整
-                    time.sleep(4)
-
-                    # 解析GPU功耗数据
-                    powers = []
-                    utils = []
-                    memory_used = []
-                    with open(gpu_log, 'r') as f:
-                        # 跳过文件头
-                        next(f)
-                        for data_line in f:
-                            data_item = data_line.strip().split(',')
-                            if len(data_item) == 4:
-                                powers.append(float(data_item[1]))
-                                utils.append(float(data_item[2]))
-                                memory_used.append(float(data_item[3]))
-                    # 取平均,保留两位小数
-                    avg_power = round(sum(powers) / len(powers), 2) if powers else 0
-                    max_power = round(max(powers, default=0), 2)
-
-                    # 取平均,保留两位小数
-                    avg_utils = round(sum(utils) / len(utils), 2) if utils else 0
-                    max_utils = round(max(utils, default=0), 2)
-
-                    # 取平均,保留两位小数
-                    avg_memory_used = round(sum(memory_used) / len(memory_used), 2) if memory_used else 0
-                    max_memory_used = round(max(memory_used, default=0), 2)
-
-                    gpu_data = {
-                        "max_gpu_power": max_power,
-                        "avg_gpu_power": avg_power,
-                        "max_gpu_util": max_utils,
-                        "avg_gpu_utils": avg_utils,
-                        "max_gpu_memory_used": max_memory_used,
-                        "avg_gpu_memory_used": avg_memory_used,
-                        "gpu_model": get_gpu_model(op.device),
-                    }
+                    time.sleep(sleep_time)
 
                     # 计算时间
                     duration = round((end_time_ns - start_time_ns) / loop_per_sample, 2)
@@ -172,12 +155,12 @@ def run_and_monitor(args, logger, op_names, num_samples):
                         "end_time": end_time,
                     }
 
-                    test_config = op.config
+                    test_config = operator.config
 
-                    logger.info(f"监测到数据\n{test_config}{other_data}{gpu_data}")
+                    logger.info(f"监测到数据\n{test_config}{other_data}")
 
                     # 解析数据字典
-                    dictionaries = [test_config, other_data, gpu_data]
+                    dictionaries = [test_config, other_data]
                     for dictionary in dictionaries:
                         for k, v in dictionary.items():
                             # 第一次的时候需要初始化
@@ -186,31 +169,61 @@ def run_and_monitor(args, logger, op_names, num_samples):
                             records[k].append(v)
 
                 except Exception as error:
-                    logger.error(f"{operation_name}第{j + 1}/{loop_per_sample}次重复测试失败，原因是：\n")
+                    logger.error(f"{op_name}第{j + 1}/{loop_per_sample}次重复测试失败，原因是：\n")
                     logger.exception(error)
-            # 开始写最终的数据
-            result_file = join(result_dir, file_name)
+            # 算子运行结束，开始写最终的数据
+            result_file = join(result_folder, file_name)
             # 写入CSV
             write_csv(result_file, records)
         else:
-            logger.error(f"{device}不可用,已跳过测试")
-        logger.info(f"对算子{op_name}的{num_samples}次测试结束!")
-        logger.info(
-            "--------------------------------------------------------------------------------------------------------------------------------------")  # 分割
+            logger.error(f"所指定的{device}不可用,已跳过测试")
+        logger.info(f"对算子{op_name}的{num_samples}次测试结束!\n\n")
 
     logger.info("实验结束！")
 
-def operation_monitor(a, b, c, d):
+"""---------------------------------------------------以下是监控线程---------------------------------------------------"""
+def cpu_monitor_thread(data, flag, params):
     pass
 
-def cpu_monitor_thread():
+def gpu_monitor_thread(data, flag, params):
+    pass
+    # 解析GPU功耗数据
+    # powers = []
+    # utils = []
+    # memory_used = []
+    # with open(gpu_log, 'r') as f:
+    #     # 跳过文件头
+    #     next(f)
+    #     for data_line in f:
+    #         data_item = data_line.strip().split(',')
+    #         if len(data_item) == 4:
+    #             powers.append(float(data_item[1]))
+    #             utils.append(float(data_item[2]))
+    #             memory_used.append(float(data_item[3]))
+    # # 取平均,保留两位小数
+    # avg_power = round(sum(powers) / len(powers), 2) if powers else 0
+    # max_power = round(max(powers, default=0), 2)
+    #
+    # # 取平均,保留两位小数
+    # avg_utils = round(sum(utils) / len(utils), 2) if utils else 0
+    # max_utils = round(max(utils, default=0), 2)
+    #
+    # # 取平均,保留两位小数
+    # avg_memory_used = round(sum(memory_used) / len(memory_used), 2) if memory_used else 0
+    # max_memory_used = round(max(memory_used, default=0), 2)
+    #
+    # gpu_data = {
+    #     "max_gpu_power": max_power,
+    #     "avg_gpu_power": avg_power,
+    #     "max_gpu_util": max_utils,
+    #     "avg_gpu_utils": avg_utils,
+    #     "max_gpu_memory_used": max_memory_used,
+    #     "avg_gpu_memory_used": avg_memory_used,
+    #     "gpu_model": get_gpu_model(op.device),
+    # }
+
+def disk_monitor_thread(data, flag, params):
     pass
 
-def gpu_monitor_thread():
-    pass
-
-def disk_monitor_thread():
-    pass
-
-def memory_monitor_thread():
+def memory_monitor_thread(data, flag, params):
     pass
