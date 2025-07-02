@@ -1,5 +1,6 @@
 mode: "random"
-device: "cpu" # choose device from cuda,cpu
+device: "cuda" # choose device from cpu, cuda, npu, xpu
+gpu: "cuda" # choose device from cuda, npu, xpu
 
 increase:  # !!!try not to write any config in default.yaml if it's not used by most!!!
 
