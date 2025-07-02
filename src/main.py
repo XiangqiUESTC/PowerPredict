@@ -1,21 +1,19 @@
 import sys
-from copy import deepcopy
-from os.path import dirname, join, abspath
 import time
+from copy import deepcopy
+import os
+from os.path import dirname, join, abspath
 import threading
 import subprocess
 from datetime import datetime
-from utils.device import is_device_avail_on_torch
 
-import torch
-
-from operators import *
-from models import *
-import os
+from operators import OPERATOR_REGISTRY
+from models import MODEL_REGISTRY
 from utils.logger import Logger
-from utils.csv_utils import write_csv
+from monitor.monitor import run_all_and_monitor
 from thirdparty.monitor_hardware import monitor_main
-from monitor.gpu import get_gpu_model
+
+
 
 
 def get_gpu_info(device, l):
@@ -175,6 +173,11 @@ if __name__ == '__main__':
     logger.info(f"命令行参数解析完成，开始实验，测试的算子或模型有：\n{op_names}")
     logger.info(f"每个算子或模型测试{num_samples}次")
 
+    # 生成一下结果文件夹
+    t = datetime.now().isoformat()
+    test_folder =  f"test-{t}" if not hasattr(args, "test_name") else f"{args['test_name']}-{t}"
+    results_folder = join(dirname(dirname(abspath(__file__))), "results", test_folder)
+
     # 运行第三方监测程序
     monitor_flag = {
         "flag": True
@@ -182,7 +185,8 @@ if __name__ == '__main__':
     monitor_thread = threading.Thread(target=monitor_main, args=(logger, monitor_flag))
     monitor_thread.start()
 
-
+    # 运行并监测所有算子的消耗情况
+    run_all_and_monitor(args, logger, op_names, num_samples, results_folder)
 
 
     # 结束控制进程
