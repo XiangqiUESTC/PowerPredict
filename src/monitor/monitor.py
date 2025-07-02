@@ -3,8 +3,10 @@
 """
 from operators import *
 from models import *
+from monitor.gpu import get_gpu_info
 from utils.csv_utils import write_csv
 from utils.device import is_device_avail_on_torch
+from utils.device import is_device_gpu
 
 
 from datetime import datetime
@@ -105,11 +107,21 @@ def run_all_and_monitor(args, logger, op_names, num_samples, result_folder):
                     if operator.cpu_info:
                         pass
                     if operator.gpu_info:
-                        pass
+                        gpu_data = {}
+                        gpu_flag = {"flag": True}
+                        gpu_params = {
+                            "gpu": operator.gpu,
+                            "device": operator.device,
+                        }
+                        gpu_thread = threading.Thread(target=gpu_monitor_thread, args=(gpu_data, gpu_flag, gpu_params, logger))
                     if operator.disk_info:
                         pass
                     if operator.memory_info:
                         pass
+
+                    # 启动各个监控线程
+                    for thread in threads:
+                        thread.start()
 
                     # 记录时间戳
                     start_time = datetime.now().isoformat()
@@ -174,7 +186,7 @@ def run_all_and_monitor(args, logger, op_names, num_samples, result_folder):
             # 算子运行结束，开始写最终的数据
             result_file = join(result_folder, file_name)
             # 写入CSV
-            write_csv(result_file, records)
+            # write_csv(result_file, records)
         else:
             logger.error(f"所指定的{device}不可用,已跳过测试")
         logger.info(f"对算子{op_name}的{num_samples}次测试结束!\n\n")
@@ -182,24 +194,42 @@ def run_all_and_monitor(args, logger, op_names, num_samples, result_folder):
     logger.info("实验结束！")
 
 """---------------------------------------------------以下是监控线程---------------------------------------------------"""
-def cpu_monitor_thread(data, flag, params):
+def cpu_monitor_thread(data, flag, params, logger):
     pass
 
-def gpu_monitor_thread(data, flag, params):
-    pass
+def gpu_monitor_thread(data, flag, params, logger):
+    gpu = params["gpu"]
+    device = params["device"]
+
+    if not is_device_gpu(gpu):
+        logger.error(f"{gpu}不是一个有效的gpu设备！gpu监控线程退出！")
+        exit(-1)
+
+    if is_device_gpu(device):
+        if device != gpu:
+            logger.warning(f"当device是gpu类型时，配置项device应该和配置项gpu一致，现在device是{device}而gpu是{gpu}")
+
+    logger.info("GPU监控线程启动！收集数据中...")
+
+    infos = []
+
+    while flag["flag"]:
+        # 获取gpu信息
+        info = get_gpu_info(gpu)
+
+        if info is not None:
+            infos.append(info)
+
+    # 收到终止信号，开始处理数据
+    if len(infos) == 0:
+        data = {}
+    else:
+        pass
     # 解析GPU功耗数据
     # powers = []
     # utils = []
     # memory_used = []
-    # with open(gpu_log, 'r') as f:
-    #     # 跳过文件头
-    #     next(f)
-    #     for data_line in f:
-    #         data_item = data_line.strip().split(',')
-    #         if len(data_item) == 4:
-    #             powers.append(float(data_item[1]))
-    #             utils.append(float(data_item[2]))
-    #             memory_used.append(float(data_item[3]))
+
     # # 取平均,保留两位小数
     # avg_power = round(sum(powers) / len(powers), 2) if powers else 0
     # max_power = round(max(powers, default=0), 2)
@@ -222,8 +252,8 @@ def gpu_monitor_thread(data, flag, params):
     #     "gpu_model": get_gpu_model(op.device),
     # }
 
-def disk_monitor_thread(data, flag, params):
+def disk_monitor_thread(data, flag, params, logger):
     pass
 
-def memory_monitor_thread(data, flag, params):
+def memory_monitor_thread(data, flag, params, logger):
     pass
