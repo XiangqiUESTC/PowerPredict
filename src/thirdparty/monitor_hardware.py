@@ -184,7 +184,7 @@ def monitor_main(logger, flag):
     for t in threads:
         t.start()
 
-    logger.info("设备数据采集进程启动！")
+    logger.info("第三方设备数据采集进程启动！")
 
     # 如果flag为True，一直保持运行，轮询式运行，否则停止所有进程
     while flag["flag"]:
