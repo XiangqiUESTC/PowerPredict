@@ -29,3 +29,21 @@ def is_device_avail_on_torch(device):
         return hasattr(torch, 'npu') and torch.npu.is_available()
     else:
         return False
+
+
+def is_device_gpu(device):
+    """
+    Description
+        判定一个字符串是不是gpu设备
+    Arguments
+        device: 字符串，类似'cpu', 'cuda:x', 'xpu', 'npu'等
+    Return
+        True or False
+    """
+    if not isinstance(device, str):
+        raise TypeError("function is_device_gpu expect str type")
+
+    device_lower = device.lower()
+
+    # 检查是否以'cuda'开头（如'cuda:0'或'cuda'），或是'xpu'/'npu'
+    return device_lower.startswith('cuda') or device_lower in ['xpu', 'npu']
