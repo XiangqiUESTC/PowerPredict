@@ -268,7 +268,7 @@ def cpu_monitor_thread(data, flag, params, logger):
         cpu_info = get_cpu_info()
         infos.append(cpu_info)
         sleep(params["interval"])
-    logger.debug(f"CPU监控线程共收集到{len(infos)}条数据:{infos}")
+    logger.debug(f"CPU监控线程共收集到{len(infos)}条数据")
     cpu_percents = [info["cpu_percent"] for info in infos]
     data.update(
         {
@@ -301,7 +301,7 @@ def memory_monitor_thread(data, flag, params, logger):
         "max_memory": round(max(memories), 2),
         "avg_memory": round(sum(memories)/len(memories), 2),
     })
-    logger.debug(f"内存监控线程共监控到{len(infos)}条数据:{infos}")
+    logger.debug(f"内存监控线程共监控到{len(infos)}条数据")
     logger.info(f"内存监控线程正常退出，处理了收集到的{len(infos)}条数据...")
 
 def gpu_monitor_thread(data, flag, params, logger):
@@ -336,7 +336,7 @@ def gpu_monitor_thread(data, flag, params, logger):
         sleep(params["interval"])
         if info is not None:
             infos.append(info)
-    logger.debug(f"GPU监控线程收集到{len(infos)}条数据：{infos}")
+    logger.debug(f"GPU监控线程收集到{len(infos)}条数据")
     # 收到终止信号，开始处理数据
     if len(infos) != 0:
         # 解析GPU功耗数据
@@ -391,6 +391,7 @@ def disk_monitor_thread(data, flag, params, logger):
     while flag["flag"]:
         infos.append(get_disk_info())
         sleep(params["interval"])
+    logger.debug(f"硬盘监控线程收集到{len(infos)}条数据")
     read_bytes = [info["read_bytes"] for info in infos]
     write_bytes = [info["write_bytes"] for info in infos]
     total_read_bytes = round((read_bytes[-1] - read_bytes[0])/(1024**2))
