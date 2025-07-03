@@ -1,10 +1,8 @@
 import sys
-import time
 from copy import deepcopy
-import os
 from os.path import dirname, join, abspath
 import threading
-import subprocess
+import pynvml
 from datetime import datetime
 
 from operators import OPERATOR_REGISTRY
@@ -16,6 +14,8 @@ from thirdparty.monitor_hardware import monitor_main
 
 # ----------------- 主函数 -----------------
 if __name__ == '__main__':
+    # 初始化监测工具pynvml
+    pynvml.nvmlInit()
     # 初始化日志器
     log_dir = join(abspath(dirname(dirname(abspath(__file__)))), "log")
     logger = Logger(log_dir)
