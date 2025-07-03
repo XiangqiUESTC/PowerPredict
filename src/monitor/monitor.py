@@ -1,11 +1,13 @@
 """
     包括主要的监测逻辑函数和监控线程
 """
+from time import sleep
+
 import psutil
 
 from operators import *
 from models import *
-from monitor.gpu import get_gpu_info, get_gpu_model
+from monitor.gpu import get_gpu_info, get_gpu_model, get_gpu_info_by_pynvml
 from monitor.cpu import get_cpu_info
 from monitor.disk import get_disk_info
 from monitor.memory import get_memory_info
@@ -116,7 +118,8 @@ def run_all_and_monitor(args, logger, op_names, num_samples, result_folder):
                         cpu_data = {}
                         cpu_flag = {"flag": True}
                         cpu_params = {
-                            "process": psutil.Process()
+                            "process": psutil.Process(),
+                            "interval": operator.cpu_monitor_interval
                         }
                         cpu_thread = threading.Thread(target=cpu_monitor_thread,args=(cpu_data, cpu_flag, cpu_params, logger))
 
@@ -130,7 +133,8 @@ def run_all_and_monitor(args, logger, op_names, num_samples, result_folder):
                         memory_data = {}
                         memory_flag = {"flag": True}
                         memory_params = {
-                            "process": psutil.Process()
+                            "process": psutil.Process(),
+                            "interval": operator.memory_monitor_interval
                         }
                         memory_thread = threading.Thread(target=memory_monitor_thread, args=(memory_data, memory_flag, memory_params, logger))
 
@@ -146,6 +150,7 @@ def run_all_and_monitor(args, logger, op_names, num_samples, result_folder):
                         gpu_params = {
                             "gpu": operator.gpu,
                             "device": operator.device,
+                            "interval": operator.gpu_monitor_interval,
                         }
                         gpu_thread = threading.Thread(target=gpu_monitor_thread, args=(gpu_data, gpu_flag, gpu_params, logger))
 
@@ -156,7 +161,21 @@ def run_all_and_monitor(args, logger, op_names, num_samples, result_folder):
                         params.append(gpu_params)
                     # 判断是否启动硬盘数据监控
                     if operator.disk_info:
-                        pass
+                        disk_data = {}
+                        disk_flag = {"flag": True}
+                        disk_params = {
+                            "disk": operator.disk,
+                            "device": operator.device,
+                            "interval": operator.disk_monitor_interval,
+                        }
+                        disk_thread = threading.Thread(target=disk_monitor_thread,
+                                                      args=(disk_data, disk_flag, disk_params, logger))
+
+                        # 在threads、flags、datas和params添加内容
+                        threads.append(disk_thread)
+                        flags.append(disk_flag)
+                        datas.append(disk_data)
+                        params.append(disk_params)
 
                     # 启动各个监控线程
                     for thread in threads:
@@ -250,7 +269,7 @@ def cpu_monitor_thread(data, flag, params, logger):
     while flag["flag"]:
         cpu_info = get_cpu_info()
         infos.append(cpu_info)
-
+        sleep(params["interval"])
     logger.debug(f"CPU监控线程共收集到{len(infos)}条数据:{infos}")
     cpu_percents = [info["cpu_percent"] for info in infos]
     data.update(
@@ -259,9 +278,7 @@ def cpu_monitor_thread(data, flag, params, logger):
             "avg_cpu_percent": round(sum(cpu_percents)/len(cpu_percents), 2),
          }
     )
-    logger.info("CPU监控线程正常退出...")
-
-
+    logger.info(f"CPU监控线程正常退出，处理了收集到的{len(infos)}条数据...")
 
 def gpu_monitor_thread(data, flag, params, logger):
     """
@@ -291,8 +308,8 @@ def gpu_monitor_thread(data, flag, params, logger):
     infos = []
     while flag["flag"]:
         # 获取gpu信息
-        info = get_gpu_info(gpu)
-
+        info = get_gpu_info_by_pynvml(gpu)
+        sleep(params["interval"])
         if info is not None:
             infos.append(info)
     logger.debug(f"GPU监控线程收集到{len(infos)}条数据：{infos}")
@@ -331,7 +348,7 @@ def gpu_monitor_thread(data, flag, params, logger):
             "max_temperature": max_temperature,
             "gpu_model": get_gpu_model(gpu)
         })
-        logger.info("GPU监控线程正常退出...")
+        logger.info(f"GPU监控线程正常退出，处理了收集到的{len(infos)}条数据...")
 
 def disk_monitor_thread(data, flag, params, logger):
     """
@@ -347,6 +364,7 @@ def disk_monitor_thread(data, flag, params, logger):
         """
     logger.info("硬盘监控线程启动！收集数据中...")
     while flag["flag"]:
+        sleep(params["interval"])
         pass
     logger.info("硬盘监控线程正常退出...")
 
@@ -367,11 +385,11 @@ def memory_monitor_thread(data, flag, params, logger):
     infos = []
     while flag["flag"]:
         infos.append(get_memory_info(main_process))
-        time.sleep(0.005)
+        sleep(params["interval"])
     memories = [info["memory"] for info in infos]
     data.update({
         "max_memory": round(max(memories), 2),
         "avg_memory": round(sum(memories)/len(memories), 2),
     })
     logger.debug(f"内存监控线程共监控到{len(infos)}条数据:{infos}")
-    logger.info("内存监控线程正常退出...")
+    logger.info(f"内存监控线程正常退出，处理了收集到的{len(infos)}条数据...")
