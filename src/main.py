@@ -81,18 +81,22 @@ if __name__ == '__main__':
     test_folder =  f"test-{t}" if not hasattr(args, "test_name") else f"{args['test_name']}-{t}"
     results_folder = join(dirname(dirname(abspath(__file__))), "results", test_folder)
 
-    # 运行第三方监测程序
-    monitor_flag = {
-        "flag": True
-    }
-    monitor_thread = threading.Thread(target=monitor_main, args=(logger, monitor_flag))
-    monitor_thread.start()
+    # 根据参数决定是否运行第三方监测程序
+    monitor_flag = {}
+    monitor_thread = None
+    if "third_monitor" in args and args["third_monitor"] == "true":
+        monitor_flag = {
+            "flag": True
+        }
+        monitor_thread = threading.Thread(target=monitor_main, args=(logger, monitor_flag))
+        monitor_thread.start()
 
     # 运行并监测所有算子的消耗情况
     run_all_and_monitor(args, logger, op_names, num_samples, results_folder)
 
-    # 结束第三方监测进程
-    monitor_flag["flag"] = False
-    monitor_thread.join()
+    if "third_monitor" in args and args["third_monitor"] == "true":
+        # 结束第三方监测进程
+        monitor_flag["flag"] = False
+        monitor_thread.join()
 
     exit(1)

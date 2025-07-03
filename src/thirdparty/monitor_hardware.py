@@ -172,7 +172,7 @@ def monitor_and_save_total(monitor_flag):
 # ==== 启动 ====
 def monitor_main(logger, flag):
     monitor_flag = {"flag": True}
-    logger.info("正在启动设备采集线程...")
+    logger.info("正在启动第三方数据采集线程...")
     threads = [
         threading.Thread(target=monitor_and_save_cpu, args=(monitor_flag,)),
         threading.Thread(target=monitor_and_save_gpu, args=(monitor_flag,)),
