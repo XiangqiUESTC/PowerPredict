@@ -111,6 +111,7 @@ def run_all_and_monitor(args, logger, op_names, num_samples, result_folder):
                     flags = []
                     datas = []
                     params = []
+                    # 判断是否启动cpu监控
                     if operator.cpu_info:
                         cpu_data = {}
                         cpu_flag = {"flag": True}
@@ -124,7 +125,21 @@ def run_all_and_monitor(args, logger, op_names, num_samples, result_folder):
                         flags.append(cpu_flag)
                         datas.append(cpu_data)
                         params.append(cpu_params)
+                    # 判断是否启动内存监控
+                    if operator.memory_info:
+                        memory_data = {}
+                        memory_flag = {"flag": True}
+                        memory_params = {
+                            "process": psutil.Process()
+                        }
+                        memory_thread = threading.Thread(target=memory_monitor_thread, args=(memory_data, memory_flag, memory_params, logger))
 
+                        # 在threads、flags、datas和params添加内容
+                        threads.append(memory_thread)
+                        flags.append(memory_flag)
+                        datas.append(memory_data)
+                        params.append(memory_params)
+                    # 判断是否启动gpu监控
                     if operator.gpu_info:
                         gpu_data = {}
                         gpu_flag = {"flag": True}
@@ -139,22 +154,9 @@ def run_all_and_monitor(args, logger, op_names, num_samples, result_folder):
                         flags.append(gpu_flag)
                         datas.append(gpu_data)
                         params.append(gpu_params)
-
+                    # 判断是否启动硬盘数据监控
                     if operator.disk_info:
                         pass
-                    if operator.memory_info:
-                        memory_data = {}
-                        memory_flag = {"flag": True}
-                        memory_params = {
-                            "process": psutil.Process()
-                        }
-                        memory_thread = threading.Thread(target=memory_monitor_thread, args=(memory_data, memory_flag, memory_params, logger))
-
-                        # 在threads、flags、datas和params添加内容
-                        threads.append(memory_thread)
-                        flags.append(memory_flag)
-                        datas.append(memory_data)
-                        params.append(memory_params)
 
                     # 启动各个监控线程
                     for thread in threads:
