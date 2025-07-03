@@ -1,12 +1,17 @@
 """
     包括主要的监测逻辑函数和监控线程
 """
+import psutil
+
 from operators import *
 from models import *
-from monitor.gpu import get_gpu_info
-from utils.csv_utils import write_csv
+from monitor.gpu import get_gpu_info, get_gpu_model
+from monitor.cpu import get_cpu_info
+from monitor.disk import get_disk_info
+from monitor.memory import get_memory_info
 from utils.device import is_device_avail_on_torch
 from utils.device import is_device_gpu
+from utils.csv_utils import write_csv
 
 
 from datetime import datetime
@@ -18,19 +23,21 @@ import time
 
 def run_all_and_monitor(args, logger, op_names, num_samples, result_folder):
     """
-        ARGS:
-            args: args是命令行参数
-            logger: logger是日志器
-            op_names: op_names是所有的要测试的算子名称
-            num_samples: num_samples是所有算子要测试的次数
-            result_folder: result_folder是结果文件夹
-        DESCRIPTION:
+        Description
             在run_all_and_monitor主程序中，会运行各个根据args装配各个算子的配置，并将每个算子运行num_samples次
             算子的配置包含其基本的各类测试模式生成测试配置所需的参数、所需要的收集的数据的集合（GPU、CPU、Disk、Memory等）
             还有所测试的设备名等
 
             对于所需要的收集的数据，每类数据都会创建一个线程用于收集数据
-        """
+        Arguments
+            args: args是命令行参数
+            logger: logger是日志器
+            op_names: op_names是所有的要测试的算子名称
+            num_samples: num_samples是所有算子要测试的次数
+            result_folder: result_folder是结果文件夹
+        Returns
+            None
+    """
     # 记录开始时间
     # 注册所有的算子和模型
     REGISTRY = {
@@ -105,7 +112,19 @@ def run_all_and_monitor(args, logger, op_names, num_samples, result_folder):
                     datas = []
                     params = []
                     if operator.cpu_info:
-                        pass
+                        cpu_data = {}
+                        cpu_flag = {"flag": True}
+                        cpu_params = {
+                            "process": psutil.Process()
+                        }
+                        cpu_thread = threading.Thread(target=cpu_monitor_thread,args=(cpu_data, cpu_flag, cpu_params, logger))
+
+                        # 在threads、flags、datas和params添加内容
+                        threads.append(cpu_thread)
+                        flags.append(cpu_flag)
+                        datas.append(cpu_data)
+                        params.append(cpu_params)
+
                     if operator.gpu_info:
                         gpu_data = {}
                         gpu_flag = {"flag": True}
@@ -114,10 +133,28 @@ def run_all_and_monitor(args, logger, op_names, num_samples, result_folder):
                             "device": operator.device,
                         }
                         gpu_thread = threading.Thread(target=gpu_monitor_thread, args=(gpu_data, gpu_flag, gpu_params, logger))
+
+                        # 在threads、flags、datas和params添加内容
+                        threads.append(gpu_thread)
+                        flags.append(gpu_flag)
+                        datas.append(gpu_data)
+                        params.append(gpu_params)
+
                     if operator.disk_info:
                         pass
                     if operator.memory_info:
-                        pass
+                        memory_data = {}
+                        memory_flag = {"flag": True}
+                        memory_params = {
+                            "process": psutil.Process()
+                        }
+                        memory_thread = threading.Thread(target=memory_monitor_thread, args=(memory_data, memory_flag, memory_params, logger))
+
+                        # 在threads、flags、datas和params添加内容
+                        threads.append(memory_thread)
+                        flags.append(memory_flag)
+                        datas.append(memory_data)
+                        params.append(memory_params)
 
                     # 启动各个监控线程
                     for thread in threads:
@@ -169,10 +206,10 @@ def run_all_and_monitor(args, logger, op_names, num_samples, result_folder):
 
                     test_config = operator.config
 
-                    logger.info(f"监测到数据\n{test_config}{other_data}")
+                    logger.info(f"所有监测子进程正常退出，监测到数据\n{test_config}{other_data}{datas}")
 
                     # 解析数据字典
-                    dictionaries = [test_config, other_data]
+                    dictionaries = [test_config, other_data, *datas]
                     for dictionary in dictionaries:
                         for k, v in dictionary.items():
                             # 第一次的时候需要初始化
@@ -186,7 +223,7 @@ def run_all_and_monitor(args, logger, op_names, num_samples, result_folder):
             # 算子运行结束，开始写最终的数据
             result_file = join(result_folder, file_name)
             # 写入CSV
-            # write_csv(result_file, records)
+            write_csv(result_file, records)
         else:
             logger.error(f"所指定的{device}不可用,已跳过测试")
         logger.info(f"对算子{op_name}的{num_samples}次测试结束!\n\n")
@@ -195,9 +232,47 @@ def run_all_and_monitor(args, logger, op_names, num_samples, result_folder):
 
 """---------------------------------------------------以下是监控线程---------------------------------------------------"""
 def cpu_monitor_thread(data, flag, params, logger):
-    pass
+    """
+        Description
+            用于监控cpu线程
+        Arguments
+            data :
+            flag :
+            params:
+            logger:
+        Returns
+            None
+    """
+    logger.info("CPU监控线程启动！收集数据中...")
+    infos = []
+    while flag["flag"]:
+        cpu_info = get_cpu_info()
+        infos.append(cpu_info)
+
+    logger.debug(f"CPU监控线程共收集到{len(infos)}条数据:{infos}")
+    cpu_percents = [info["cpu_percent"] for info in infos]
+    data.update(
+        {
+            "max_cpu_percent": max(cpu_percents),
+            "avg_cpu_percent": sum(cpu_percents)/len(cpu_percents),
+         }
+    )
+    logger.info("CPU监控线程正常退出...")
+
+
 
 def gpu_monitor_thread(data, flag, params, logger):
+    """
+    Description
+
+    Arguments
+        data :
+        flag :
+        params:
+        logger:
+    Returns
+        None
+    """
     gpu = params["gpu"]
     device = params["device"]
 
@@ -212,48 +287,89 @@ def gpu_monitor_thread(data, flag, params, logger):
     logger.info("GPU监控线程启动！收集数据中...")
 
     infos = []
-
     while flag["flag"]:
         # 获取gpu信息
         info = get_gpu_info(gpu)
 
         if info is not None:
             infos.append(info)
-
+    logger.debug(f"GPU监控线程收集到{len(infos)}条数据：{infos}")
     # 收到终止信号，开始处理数据
-    if len(infos) == 0:
-        data = {}
-    else:
-        pass
-    # 解析GPU功耗数据
-    # powers = []
-    # utils = []
-    # memory_used = []
+    if len(infos) != 0:
+        # 解析GPU功耗数据
+        powers = [info["gpu_power"] for info in infos]
+        utils = [info["gpu_utilization"] for info in infos]
+        memory_used = [info["gpu_memory_used"] for info in infos]
+        temperature = [info["gpu_temperature"] for info in infos]
 
-    # # 取平均,保留两位小数
-    # avg_power = round(sum(powers) / len(powers), 2) if powers else 0
-    # max_power = round(max(powers, default=0), 2)
-    #
-    # # 取平均,保留两位小数
-    # avg_utils = round(sum(utils) / len(utils), 2) if utils else 0
-    # max_utils = round(max(utils, default=0), 2)
-    #
-    # # 取平均,保留两位小数
-    # avg_memory_used = round(sum(memory_used) / len(memory_used), 2) if memory_used else 0
-    # max_memory_used = round(max(memory_used, default=0), 2)
-    #
-    # gpu_data = {
-    #     "max_gpu_power": max_power,
-    #     "avg_gpu_power": avg_power,
-    #     "max_gpu_util": max_utils,
-    #     "avg_gpu_utils": avg_utils,
-    #     "max_gpu_memory_used": max_memory_used,
-    #     "avg_gpu_memory_used": avg_memory_used,
-    #     "gpu_model": get_gpu_model(op.device),
-    # }
+        # 取平均,保留两位小数
+        avg_power = round(sum(powers) / len(powers), 2) if powers else 0
+        max_power = round(max(powers, default=0), 2)
+
+        # 取平均,保留两位小数
+        avg_utils = round(sum(utils) / len(utils), 2) if utils else 0
+        max_utils = round(max(utils, default=0), 2)
+
+        # 取平均,保留两位小数
+        avg_memory_used = round(sum(memory_used) / len(memory_used), 2) if memory_used else 0
+        max_memory_used = round(max(memory_used, default=0), 2)
+
+        # 温度取平均,保留两位小数
+        avg_temperature = round(sum(temperature) / len(temperature), 2) if temperature else 0
+        max_temperature = round(max(temperature, default=0), 2)
+
+        data.update({
+            "max_gpu_power": max_power,
+            "avg_gpu_power": avg_power,
+            "max_gpu_util": max_utils,
+            "avg_gpu_utils": avg_utils,
+            "max_gpu_memory_used": max_memory_used,
+            "avg_gpu_memory_used": avg_memory_used,
+            "avg_temperature": avg_temperature,
+            "max_temperature": max_temperature,
+            "gpu_model": get_gpu_model(gpu)
+        })
+        logger.info("GPU监控线程正常退出...")
 
 def disk_monitor_thread(data, flag, params, logger):
-    pass
+    """
+        Description
+
+        Arguments
+            data :
+            flag :
+            params:
+            logger:
+        Returns
+            None
+        """
+    logger.info("硬盘监控线程启动！收集数据中...")
+    while flag["flag"]:
+        pass
+    logger.info("硬盘监控线程正常退出...")
 
 def memory_monitor_thread(data, flag, params, logger):
-    pass
+    """
+        Description
+
+        Arguments
+            data :
+            flag :
+            params:
+            logger:
+        Returns
+            None
+        """
+    logger.info("内存监控线程启动！收集数据中...")
+    main_process = params["process"]
+    infos = []
+    while flag["flag"]:
+        infos.append(get_memory_info(main_process))
+        time.sleep(0.005)
+    memories = [info["memory"] for info in infos]
+    data.update({
+        "avg_memory": max(memories),
+        "max_memory": sum(memories)/len(memories),
+    })
+    logger.debug(f"内存监控线程共监控到{len(infos)}条数据:{infos}")
+    logger.info("内存监控线程正常退出...")

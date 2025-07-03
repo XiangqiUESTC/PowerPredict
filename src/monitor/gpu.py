@@ -38,8 +38,14 @@ def get_gpu_info(device):
                 '--query-gpu=power.draw,utilization.gpu,memory.used,temperature.gpu',
                 '--format=csv,noheader,nounits'
             ])
-            info = output.decode('utf-8').strip().splitlines()
-            return info[device_num]
+            infos = output.decode('utf-8').strip().splitlines()
+            info = infos[device_num].split(',')
+            return {
+                "gpu_power": float(info[0]),
+                "gpu_utilization": float(info[1]),
+                "gpu_memory_used": float(info[2]),
+                "gpu_temperature": float(info[3]),
+            }
         except subprocess.CalledProcessError as e:
             return None
 

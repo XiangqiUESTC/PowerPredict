@@ -14,103 +14,6 @@ from monitor.monitor import run_all_and_monitor
 from thirdparty.monitor_hardware import monitor_main
 
 
-
-
-def get_gpu_info(device, l):
-    """
-        :param l: 日志器
-        :param device: 不同的设备类型
-        :return: gpu数据，包括功率、utilization、memory
-    """
-    if not isinstance(device, str):
-        exc = TypeError("设备应该是一个字符串！")
-        l.exception(exc)
-        raise exc
-
-    if device == 'cpu':
-        return True
-    elif device.startswith("cuda"):
-        # 默认使用第一个设备
-        device_num = 0
-        # 从device字符串中提取设备编号
-        if ':' in device:
-            try:
-                # 提取冒号后的数字部分
-                device_num = int(device.split(':')[1])
-            except (ValueError, IndexError):
-                # 处理无效的设备编号格式
-                print(f"警告: 无效的设备格式 '{device}'，默认使用设备0")
-                device_num = 0
-        try:
-            output = subprocess.check_output([
-                'nvidia-smi',
-                '--query-gpu=power.draw,utilization.gpu,memory.used',
-                '--format=csv,noheader,nounits'
-            ])
-            info = output.decode('utf-8').strip().splitlines()
-            return info[device_num]
-        except Exception as e:
-            l.error(f"获取{device}设备信息出错")
-            l.exception(e)
-            return None
-    elif device == "npu":
-        try:
-            # 执行 npu-smi info 命令获取原始输出
-            output = subprocess.check_output("npu-smi info", shell=True, text=True)
-
-            # 解析输出，提取所有NPU的功耗值
-            power_values = []
-            for line in output.split('\n'):
-                # print("start get_gpu_power")
-                # print("-" * 50)
-                # print("-" * 50)
-                # print(line)
-                # print("-" * 50)
-                # print("-" * 50)
-                if '| 0     ' in line:  # 匹配NPU信息行
-                    parts = [p.strip() for p in line.split('|') if p.strip()]
-                    # print("parts :", parts)
-                    # if len(parts) >= 4:
-                    if parts[1] == 'OK':
-                        power = parts[2].split()[0]  # 提取功耗值(如"93.9")
-                        power_values.append(float(power))
-                        # print("gpu功耗: ", power)
-
-            # 计算平均功耗(如果有多个NPU)
-            if power_values:
-                return sum(power_values) / len(power_values)
-            return None
-        except Exception as e:
-            print(f"获取NPU功耗出错: {e}")
-            return None
-    elif device == "xpu":
-        return None
-    else:
-        raise Exception("Unknown device")
-
-# ----------------- GPU 监控线程 -----------------
-def gpu_monitor_thread_func(logfile, stop_flag, l, device):
-    """
-    ARGS:
-        logfile: gpu监测信息的输出文件的绝对路径
-        stop_flag: stop_flag是一个字典，字典属于非基本变量，通过字典里面的值来在外部控制进程的结束
-        l: 日志实例对象
-        device: gpu设备类型
-    DESCRIPTION:
-        gpu监控线程函数
-    """
-    # 新增目录创建逻辑
-    os.makedirs(dirname(logfile), exist_ok=True)
-    # GPU监测代码
-    with open(logfile, 'w') as f:
-        f.write("timestamp, power.draw[W], util[%], memory[MiB]\n")
-        while not stop_flag["stop"]:
-            timestamp = datetime.now().strftime('%Y-%m-%d %H:%M:%S')
-            info = get_gpu_info(device, l)
-            if info:
-                f.write(f"{timestamp}, {info}\n")
-
-
 # ----------------- 主函数 -----------------
 if __name__ == '__main__':
     # 初始化日志器
@@ -174,7 +77,7 @@ if __name__ == '__main__':
     logger.info(f"每个算子或模型测试{num_samples}次")
 
     # 生成一下结果文件夹
-    t = datetime.now().isoformat()
+    t = datetime.now().strftime("%Y-%m-%d_%H-%M-%S")
     test_folder =  f"test-{t}" if not hasattr(args, "test_name") else f"{args['test_name']}-{t}"
     results_folder = join(dirname(dirname(abspath(__file__))), "results", test_folder)
 
@@ -188,8 +91,7 @@ if __name__ == '__main__':
     # 运行并监测所有算子的消耗情况
     run_all_and_monitor(args, logger, op_names, num_samples, results_folder)
 
-
-    # 结束控制进程
+    # 结束第三方监测进程
     monitor_flag["flag"] = False
     monitor_thread.join()
 
