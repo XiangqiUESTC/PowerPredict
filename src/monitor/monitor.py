@@ -255,8 +255,8 @@ def cpu_monitor_thread(data, flag, params, logger):
     cpu_percents = [info["cpu_percent"] for info in infos]
     data.update(
         {
-            "max_cpu_percent": max(cpu_percents),
-            "avg_cpu_percent": sum(cpu_percents)/len(cpu_percents),
+            "max_cpu_percent": round(max(cpu_percents), 2),
+            "avg_cpu_percent": round(sum(cpu_percents)/len(cpu_percents), 2),
          }
     )
     logger.info("CPU监控线程正常退出...")
@@ -370,8 +370,8 @@ def memory_monitor_thread(data, flag, params, logger):
         time.sleep(0.005)
     memories = [info["memory"] for info in infos]
     data.update({
-        "avg_memory": max(memories),
-        "max_memory": sum(memories)/len(memories),
+        "max_memory": round(max(memories), 2),
+        "avg_memory": round(sum(memories)/len(memories), 2),
     })
     logger.debug(f"内存监控线程共监控到{len(infos)}条数据:{infos}")
     logger.info("内存监控线程正常退出...")
