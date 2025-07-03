@@ -164,8 +164,6 @@ def run_all_and_monitor(args, logger, op_names, num_samples, result_folder):
                         disk_data = {}
                         disk_flag = {"flag": True}
                         disk_params = {
-                            "disk": operator.disk,
-                            "device": operator.device,
                             "interval": operator.disk_monitor_interval,
                         }
                         disk_thread = threading.Thread(target=disk_monitor_thread,
@@ -280,6 +278,32 @@ def cpu_monitor_thread(data, flag, params, logger):
     )
     logger.info(f"CPU监控线程正常退出，处理了收集到的{len(infos)}条数据...")
 
+def memory_monitor_thread(data, flag, params, logger):
+    """
+        Description
+
+        Arguments
+            data :
+            flag :
+            params:
+            logger:
+        Returns
+            None
+        """
+    logger.info("内存监控线程启动！收集数据中...")
+    main_process = params["process"]
+    infos = []
+    while flag["flag"]:
+        infos.append(get_memory_info(main_process))
+        sleep(params["interval"])
+    memories = [info["memory"] for info in infos]
+    data.update({
+        "max_memory": round(max(memories), 2),
+        "avg_memory": round(sum(memories)/len(memories), 2),
+    })
+    logger.debug(f"内存监控线程共监控到{len(infos)}条数据:{infos}")
+    logger.info(f"内存监控线程正常退出，处理了收集到的{len(infos)}条数据...")
+
 def gpu_monitor_thread(data, flag, params, logger):
     """
     Description
@@ -363,33 +387,16 @@ def disk_monitor_thread(data, flag, params, logger):
             None
         """
     logger.info("硬盘监控线程启动！收集数据中...")
-    while flag["flag"]:
-        sleep(params["interval"])
-        pass
-    logger.info("硬盘监控线程正常退出...")
-
-def memory_monitor_thread(data, flag, params, logger):
-    """
-        Description
-
-        Arguments
-            data :
-            flag :
-            params:
-            logger:
-        Returns
-            None
-        """
-    logger.info("内存监控线程启动！收集数据中...")
-    main_process = params["process"]
     infos = []
     while flag["flag"]:
-        infos.append(get_memory_info(main_process))
+        infos.append(get_disk_info())
         sleep(params["interval"])
-    memories = [info["memory"] for info in infos]
+    read_bytes = [info["read_bytes"] for info in infos]
+    write_bytes = [info["write_bytes"] for info in infos]
+    total_read_bytes = round((read_bytes[-1] - read_bytes[0])/(1024**2))
+    total_write_bytes = round((write_bytes[-1] - write_bytes[0])/(1024**2))
     data.update({
-        "max_memory": round(max(memories), 2),
-        "avg_memory": round(sum(memories)/len(memories), 2),
+        "read_bytes": total_read_bytes,
+        "write_bytes": total_write_bytes,
     })
-    logger.debug(f"内存监控线程共监控到{len(infos)}条数据:{infos}")
-    logger.info(f"内存监控线程正常退出，处理了收集到的{len(infos)}条数据...")
+    logger.info(f"硬盘监控线程正常退出，处理了收集到的{len(infos)}条数据...")
