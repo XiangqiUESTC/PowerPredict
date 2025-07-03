@@ -1,7 +1,7 @@
+import pynvml
 import torch
 import subprocess
 
-from utils.device import is_device_avail_on_torch
 from utils.device import is_device_gpu
 
 def get_gpu_info(device):
@@ -81,6 +81,54 @@ def get_gpu_info(device):
             return None
     elif device == "xpu":
         return None
+    else:
+        raise Exception("Unknown device")
+
+def get_gpu_info_by_pynvml(device):
+    """
+        Description
+            在执行此函数之前要确定执行了pynvml的初始化
+        Arguments
+            device: 不同的设备类型
+        Return
+            Dict={
+
+            }
+    """
+    if device.startswith("cuda"):
+        # 默认使用第一个设备
+        device_num = 0
+        # 从device字符串中提取设备编号
+        if ':' in device:
+            try:
+                # 提取冒号后的数字部分
+                device_num = int(device.split(':')[1])
+            except (ValueError, IndexError):
+                # 处理无效的设备编号格式
+                print(f"警告: 无效的设备格式 '{device}'，默认使用设备0")
+                device_num = 0
+        try:
+            handle = pynvml.nvmlDeviceGetHandleByIndex(device_num)
+            # 获取利用率
+            util = pynvml.nvmlDeviceGetUtilizationRates(handle)
+            gpu_util = util.gpu
+            # 获取显存信息
+            mem_info = pynvml.nvmlDeviceGetMemoryInfo(handle)
+            mem_used = round(mem_info.used / (1024 ** 2))
+            # 获取功耗
+            power = pynvml.nvmlDeviceGetPowerUsage(handle) / 1000.0
+            temp = pynvml.nvmlDeviceGetTemperature(
+                handle,
+                pynvml.NVML_TEMPERATURE_GPU  # 核心温度传感器
+            )
+            return {
+                "gpu_power": float(power),
+                "gpu_utilization": float(gpu_util),
+                "gpu_memory_used": float(mem_used),
+                "gpu_temperature": float(temp),
+            }
+        except subprocess.CalledProcessError as e:
+            return None
     else:
         raise Exception("Unknown device")
 
