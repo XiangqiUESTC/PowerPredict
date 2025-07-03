@@ -75,7 +75,7 @@ def run_all_and_monitor(args, logger, op_names, num_samples, result_folder):
             for j in range(num_samples):
                 try:
                     # 开始测试
-                    logger.info(f"开始对{op_name}的第{j + 1}次测试...")
+                    logger.info(f"开始对{op_name}的第{j + 1}/{num_samples}次测试...")
 
                     # 生成此次测试的配置
                     _ = operator.generate_config()
