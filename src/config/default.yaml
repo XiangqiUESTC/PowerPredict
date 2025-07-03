@@ -9,10 +9,10 @@ random:  # !!!try not to write any config in default.yaml if it's not used by mo
 test_name: "test" # test name
 
 sleep_time: 10 # sleep time between every test for every op/model
-loop_per_sample: 30 # repeat time of every test for every op/model
+loop_per_sample: 64 # repeat time of every test for every op/model
 preheat: 80 # preheat time for every test
 
-cpu_info: false
+cpu_info: true
 gpu_info: true
 disk_info: false
-memory_info: false
+memory_info: true
