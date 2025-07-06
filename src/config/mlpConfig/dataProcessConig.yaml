@@ -1,0 +1,15 @@
+operator: "spmm"
+output_feature:  ['duration','avg_gpu_power']
+spmm:
+  type: 0
+  input_features: ['m', 'n', 'p', 'nnz', 'sparsity']
+  data_path: "../dataset/spmm.csv"
+  result_path: "../../modelResult/spmm_predictions.csv"
+  csv_head: ['m', 'n', 'p', 'nnz', 'sparsity', 'real_power', 'predicted_power']
+
+softmax:
+  type: 1
+  input_features: [ 'x', 'y', 'z', 'dim']
+  data_path: "../dataset/softmax_p.csv"
+  result_path: "../../modelResult/softmax.csv"
+  csv_head: [ 'x', 'y', 'z', 'dim', 'real_power', 'predicted_power' ]
