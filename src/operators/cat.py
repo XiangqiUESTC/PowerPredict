@@ -67,6 +67,9 @@ class Cat(BaseProcessor):
             for i in range(self.dim_num):
                 self.base_shapes[i] += self.step_increment
 
+            for i in range(len(self.cat_dim_sizes)):
+                self.cat_dim_sizes[i] += self.step_increment
+
             self.config = {
                 "tensor_shapes": tensor_shapes,
                 "dim": self.cat_dim,
