@@ -11,5 +11,5 @@ softmax:
   type: 1
   input_features: [ 'x', 'y', 'z', 'dim']
   data_path: "../dataset/softmax_p.csv"
-  result_path: "../../modelResult/softmax.csv"
+  result_path: "../../modelResult/softmax_predictions.csv"
   csv_head: [ 'x', 'y', 'z', 'dim', 'real_power', 'predicted_power' ]
