@@ -13,6 +13,7 @@ import yaml
 class mlpModle:
     def __init__(self,op_name):
         self.config = None
+        self.name = op_name
         with open('../config/mlpConfig/dataProcessConig.yaml', 'r', encoding='utf-8') as file:
             self.config = yaml.safe_load(file)  # 加载yaml文件
         # 读取数据
@@ -26,7 +27,7 @@ class mlpModle:
         self.resultPath = self.config[op_name]['result_path']
         self.csvHead = self.config[op_name]['csv_head']
         # 划分训练集和测试集
-        self.X_train, self.X_test, self.y_train, self.y_test = train_test_split(self.X, self.y, test_size=0.3)
+        self.X_train, self.X_test, self.y_train, self.y_test = train_test_split(self.X, self.y, test_size=0.2)
         # 特征标准化
         self.scaler = StandardScaler()
         X_train_scaled = self.scaler.fit_transform(self.X_train)
@@ -78,7 +79,7 @@ class mlpModle:
         # 样式设置
         plt.xlabel('Sample Index', fontsize=12)
         plt.ylabel('Power Consumption', fontsize=12)
-        plt.title('Actual vs Predicted Power Consumption\nwith Error Analysis', fontsize=14, pad=20)
+        plt.title('Actual vs Predicted Power Consumption\n'+self.name, fontsize=14, pad=20)
         plt.legend(loc='upper right', fontsize=10)
         plt.grid(True, linestyle='--', alpha=0.4)
         # 智能调整y轴范围
@@ -88,7 +89,7 @@ class mlpModle:
         # 紧凑布局
         plt.tight_layout()
         # 保存图片（可选）
-        plt.savefig('power_comparison.png', dpi=300, bbox_inches='tight')
+        plt.savefig('../../modelResult/' + self.name+ "_power_comparison.png", dpi=300, bbox_inches='tight')
         plt.show()
 
 def testResult(op_name):
@@ -114,4 +115,6 @@ def testResult(op_name):
                 float(pred_val)
             ])
 if __name__ == '__main__':
+    testResult("spmm")
     testResult("softmax")
+    testResult("cat")
