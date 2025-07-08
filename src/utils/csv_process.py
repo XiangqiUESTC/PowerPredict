@@ -27,7 +27,7 @@ import pandas as pd
 import pandas as pd
 
 # 读取CSV文件
-df = pd.read_csv('../dataset/catMerged.csv')
+df = pd.read_csv('../monitor/dataset/catMerged.csv')
 
 # 假设'tensor_shape'列包含类似"[[1,2,3],[4,5,6],[7,8,9]]"的字符串
 # 1. 去除外层方括号

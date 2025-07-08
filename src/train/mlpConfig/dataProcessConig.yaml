@@ -1,0 +1,21 @@
+operator: "spmm"
+output_feature:  ['duration','avg_gpu_power']
+spmm:
+  type: 0
+  input_features: ['monitors', 'n', 'p', 'nnz', 'sparsity']
+  data_path: "../dataset/spmm.csv"
+  result_path: "../../modelResult/spmm_predictions.csv"
+  csv_head: ['monitors', 'n', 'p', 'nnz', 'sparsity', 'real_power', 'predicted_power']
+
+softmax:
+  type: 1
+  input_features: [ 'x', 'y', 'z', 'dim']
+  data_path: "../dataset/softmax_p.csv"
+  result_path: "../../modelResult/softmax_predictions.csv"
+  csv_head: [ 'x', 'y', 'z', 'dim', 'real_power', 'predicted_power' ]
+cat:
+  type: 2
+  input_features: [ 'pos11', 'pos12', 'pos13','pos21', 'pos22', 'pos23','pos31', 'pos32', 'pos33', 'dim' ]
+  data_path: "../dataset/cat_p.csv"
+  result_path: "../../modelResult/cat_predictions.csv"
+  csv_head: [  'pos11', 'pos12', 'pos13','pos21', 'pos22', 'pos23','pos31', 'pos32', 'pos33', 'dim', 'real_power', 'predicted_power' ]

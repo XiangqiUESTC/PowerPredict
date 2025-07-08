@@ -3,9 +3,9 @@
 import pandas as pd
 
 # 读取两个CSV文件
-df1 = pd.read_csv('../dataset/cat.csv')
-df2 = pd.read_csv('../dataset/cat2.csv')
-df3 = pd.read_csv('../dataset/cat3.csv')
+df1 = pd.read_csv('../monitor/dataset/cat.csv')
+df2 = pd.read_csv('../monitor/dataset/cat2.csv')
+df3 = pd.read_csv('../monitor/dataset/cat3.csv')
 
 # 垂直合并（堆叠行）
 merged_df = pd.concat([df1, df2,df3], ignore_index=True)

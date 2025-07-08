@@ -15,7 +15,7 @@ class Logger:
         console_handler.setLevel(logging.INFO)
 
         # 日志文件绝对路径
-        file_path = join(log_dir, f'{test_name}_{datetime.now().strftime("%Y-%m-%d_%H-%M-%S")}.log')
+        file_path = join(log_dir, f'{test_name}_{datetime.now().strftime("%Y-%monitors-%d_%H-%M-%S")}.log')
 
         # 设置文件输出handler
         os.makedirs(dirname(file_path), exist_ok=True)
