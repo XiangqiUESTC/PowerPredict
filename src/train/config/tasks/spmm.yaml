@@ -1,2 +1,1 @@
-predictor: MLP
-preprocessor: spmm
+preprocessor: "spmm"

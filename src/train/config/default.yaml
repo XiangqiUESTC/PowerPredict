@@ -2,3 +2,6 @@ data_root: "training" # root folder for training data
 source_data: "raw" # data before preprocess
 preprocessed_data: "preprocessed"
 
+trainer: "default_trainer"
+predictor: "MLP"
+
