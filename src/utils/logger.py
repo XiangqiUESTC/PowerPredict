@@ -7,7 +7,7 @@ from os.path import join, dirname
 class Logger:
     def __init__(self, log_dir, test_name="Test"):
         # 初始化日志实例对象
-        logger = logging.getLogger(f"{test_name} Log")
+        logger = logging.getLogger(f"PowerPredict")
         logger.setLevel(logging.DEBUG)
 
         # 设置控制台输出handler
@@ -15,7 +15,7 @@ class Logger:
         console_handler.setLevel(logging.INFO)
 
         # 日志文件绝对路径
-        file_path = join(log_dir, f'{test_name}_{datetime.now().strftime("%Y-%monitors-%d_%H-%M-%S")}.log')
+        file_path = join(log_dir, f'{test_name}_{datetime.now().strftime("%Y-%m-%d_%H-%M-%S")}.log')
 
         # 设置文件输出handler
         os.makedirs(dirname(file_path), exist_ok=True)
