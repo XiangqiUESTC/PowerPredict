@@ -1,0 +1,2 @@
+predictor: MLP
+preprocessor: spmm
