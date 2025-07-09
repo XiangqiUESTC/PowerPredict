@@ -10,7 +10,9 @@ from tqdm import tqdm
 from sklearn.neural_network import MLPRegressor
 from sklearn.base import clone
 import yaml
-class mlpModle:
+
+
+class MlpModel:
     def __init__(self,op_name):
         self.config = None
         self.name = op_name
