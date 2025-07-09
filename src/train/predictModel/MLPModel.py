@@ -16,7 +16,7 @@ class MlpModel:
     def __init__(self,op_name):
         self.config = None
         self.name = op_name
-        with open('../mlpConfig/dataProcessConig.yaml', 'r', encoding='utf-8') as file:
+        with open('../config/default.yaml', 'r', encoding='utf-8') as file:
             self.config = yaml.safe_load(file)  # 加载yaml文件
         # 读取数据
         self.data = pd.read_csv(self.config[op_name]['data_path'])
