@@ -17,7 +17,7 @@ if __name__ == '__main__':
     # 初始化监测工具pynvml
     pynvml.nvmlInit()
     # 初始化日志器
-    log_dir = join(abspath(dirname(dirname(abspath(__file__)))), "log")
+    log_dir = join(abspath(dirname(dirname(abspath(__file__)))), "log", "monitor")
     logger = Logger(log_dir)
 
     # 解析命令行中的名称参数
