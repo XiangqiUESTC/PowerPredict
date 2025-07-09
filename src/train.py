@@ -1,11 +1,16 @@
 import pprint
 import sys
 from copy import deepcopy
-
 import yaml
+from winsound import SND_NOWAIT
 
 from utils.logger import Logger
 from os.path import join, abspath, dirname
+from types import SimpleNamespace as sn
+
+from train.trainer import TRAINER_REGISTRY
+from train.predictor import PREDICTOR_REGISTRY
+from train.preprocessor import PREPROCESSOR_REGISTRY
 
 if __name__ == '__main__':
     # 命令示例
@@ -103,11 +108,16 @@ if __name__ == '__main__':
     logger.info(f"任务{task_name}对应的配置为：\n{pprint.pformat(task_config, indent=4, width=1)}")
     logger.info(f"命令行配置为：\n{pprint.pformat(pos_args, indent=4, width=1)}")
 
-    final_config = {}
-    final_config.update(default_config)
-    final_config.update(task_config)
-    final_config.update(pos_args)
-    logger.info(f"最终配置为：\n{pprint.pformat(final_config, indent=4, width=1)}")
+    # config是最终的配置
+    config = {}
+    config.update(default_config)
+    config.update(task_config)
+    config.update(pos_args)
+    logger.info(f"最终配置为：\n{pprint.pformat(config, indent=4, width=1)}")
+    config = sn(**config)
 
+    # 开始训练
+    preprocessor = PREPROCESSOR_REGISTRY[config.preprocessor]()
+    predictor = PREDICTOR_REGISTRY[config.predictor]()
+    trainer = TRAINER_REGISTRY[config.trainer]()
 
-    pass
