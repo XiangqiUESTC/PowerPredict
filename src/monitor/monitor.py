@@ -233,7 +233,7 @@ def run_all_and_monitor(args, logger, op_names, num_samples, result_folder):
                     time.sleep(sleep_time)
 
                     # 计算时间
-                    duration = round((end_time_ns - start_time_ns) / loop_per_sample, 2)
+                    duration = round((end_time_ns - start_time_ns) / execute_time, 2)
 
                     other_data = {
                         "duration": duration,
