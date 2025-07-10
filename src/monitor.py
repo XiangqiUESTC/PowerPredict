@@ -8,7 +8,7 @@ from datetime import datetime
 from monitor.operators import OPERATOR_REGISTRY
 from monitor.models import MODEL_REGISTRY
 from utils.logger import Logger
-from monitor.monitors.monitor_flow import run_all_and_monitor
+from monitor.monitor_flow import run_all_and_monitor
 from monitor.thirdparty.monitor_hardware import monitor_main
 
 
