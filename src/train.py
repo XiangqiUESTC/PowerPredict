@@ -1,3 +1,4 @@
+import os
 import pprint
 import sys
 from copy import deepcopy
@@ -123,10 +124,12 @@ if __name__ == '__main__':
     # 读取数据
     # 获取原始数据文件夹
     abs_raw_folder = join(project_abs_path, config.data_root_folder, config.source_data_folder, config.raw_folder)
-    print(abs_raw_folder)
+
+    if not os.path.exists(abs_raw_folder):
+        logger.error(f"原始数据文件夹：{abs_raw_folder}不存在！请检查数据和配置！")
+        exit(-1)
 
     raw_data = merge_csv_to_pd(config.raw_file_regex, abs_raw_folder)
-    print(raw_data)
 
 
     # 开始训练
