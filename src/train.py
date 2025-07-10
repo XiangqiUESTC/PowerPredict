@@ -6,18 +6,22 @@ from winsound import SND_NOWAIT
 
 from utils.logger import Logger
 from os.path import join, abspath, dirname
-from types import SimpleNamespace as sn
+from types import SimpleNamespace
 
 from train.trainer import TRAINER_REGISTRY
 from train.predictor import PREDICTOR_REGISTRY
 from train.preprocessor import PREPROCESSOR_REGISTRY
 
+from utils.csv_utils import  merge_csv_to_pd
+
 if __name__ == '__main__':
     # 命令示例
     # python cat cat_results --arg1=xxx --arg2=xxx
+    # 获取项目根目录
+    project_abs_path = dirname(dirname(abspath(__file__)))
 
     # 初始化日志器
-    log_dir = join(abspath(dirname(dirname(abspath(__file__)))), "log", "train")
+    log_dir = join(project_abs_path, "log", "train")
     logger = Logger(log_dir)
 
 
@@ -73,7 +77,7 @@ if __name__ == '__main__':
         exit(-1)
 
     task_name = argv[1]
-    pos_args["source_folder"] = argv[2]
+    pos_args["raw_folder"] = argv[2]
 
     # 读取并按优先级合并配置
     ##  配置包括默认配置、训练任务配置和命令行配置
@@ -114,7 +118,16 @@ if __name__ == '__main__':
     config.update(task_config)
     config.update(pos_args)
     logger.info(f"最终配置为：\n{pprint.pformat(config, indent=4, width=1)}")
-    config = sn(**config)
+    config = SimpleNamespace(**config)
+
+    # 读取数据
+    # 获取原始数据文件夹
+    abs_raw_folder = join(project_abs_path, config.data_root_folder, config.source_data_folder, config.raw_folder)
+    print(abs_raw_folder)
+
+    raw_data = merge_csv_to_pd(config.raw_file_regex, abs_raw_folder)
+    print(raw_data)
+
 
     # 开始训练
     preprocessor = PREPROCESSOR_REGISTRY[config.preprocessor]()

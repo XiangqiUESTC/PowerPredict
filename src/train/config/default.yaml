@@ -1,7 +1,7 @@
-data_root: "training" # root folder for training data
-source_data: "raw" # data before preprocess
-preprocessed_data: "preprocessed"
+data_root_folder: "train_data" # 训练数据根目录
+source_data_folder: "raw" # 原始数据存放的子目录
+preprocessed_data_folder: "preprocessed" # 处理后的数据存放的子目录
 
-trainer: "default_trainer"
-predictor: "MLP"
+trainer: "default_trainer" # 使用默认训练器
+predictor: "MLP" # 默认使用MLP
 
