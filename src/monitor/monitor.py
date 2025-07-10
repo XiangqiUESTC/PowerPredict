@@ -1,6 +1,7 @@
 """
     包括主要的监测逻辑函数和监控线程
 """
+from distutils.util import execute
 from time import sleep
 
 import psutil
@@ -64,6 +65,7 @@ def run_all_and_monitor(args, logger, op_names, num_samples, result_folder):
         device_avail = is_device_avail_on_torch(device)
         # 重复次数：
         loop_per_sample = operator.loop_per_sample
+        sample_time = operator.sample_time
         # 实验间的间隔时间：
         sleep_time = operator.sleep_time
         # 预热次数：
@@ -185,7 +187,9 @@ def run_all_and_monitor(args, logger, op_names, num_samples, result_folder):
                     start_time_ns = time.time_ns()
                     # 重复执行，不断采样
                     f = False
-                    for _ in range(loop_per_sample):
+                    # 统计执行次数
+                    execute_time = 0
+                    while True:
                         try:
                             operator.execute()
                         except Exception as error:
@@ -195,6 +199,20 @@ def run_all_and_monitor(args, logger, op_names, num_samples, result_folder):
                             torch.cuda.empty_cache()  # 释放缓存
                             # 跳出
                             break
+                        execute_time += 1
+                        current_time_ns = time.time_ns()
+                        # 如果设置了采样时间，以采样时间为准
+                        if sample_time:
+                            passed_sample_time = (current_time_ns - start_time_ns)/1e6
+                            if passed_sample_time > sample_time:
+                                break
+                        # 否则以重复次数为准
+                        elif loop_per_sample:
+                            if execute_time > loop_per_sample:
+                                break
+                        else:
+                            logger.error("至少应该指定一次测试的测试总时间或者次数！而现在sample_time和loop_per_sample均为None！")
+                            exit(-1)
                     if f:
                         # 此次error
                         continue
