@@ -10,7 +10,6 @@ from os.path import join, abspath, dirname
 from types import SimpleNamespace
 
 from train.trainer import TRAINER_REGISTRY
-from train.predictor import PREDICTOR_REGISTRY
 from train.preprocessor import PREPROCESSOR_REGISTRY
 
 from utils.csv_utils import  merge_csv_to_pd
@@ -131,15 +130,8 @@ if __name__ == '__main__':
 
     raw_data = merge_csv_to_pd(config.raw_file_regex, abs_raw_folder)
 
-    # 初始化预处理器，处理数据
-    preprocessor = PREPROCESSOR_REGISTRY[config.preprocessor](config)
-    preprocessor.process(raw_data)
-    # 初始化预测模型
-    predictor = PREDICTOR_REGISTRY[config.predictor](config)
-
-    # 开始训练
-    # 训练器进行训练
-    trainer = TRAINER_REGISTRY[config.trainer](preprocessor, predictor, config, logger)
+    # 开始训练，在训练器中初始化数据预处理器和预测模型
+    trainer = TRAINER_REGISTRY[config.trainer](raw_data, config, logger)
 
     trainer.train()
 
