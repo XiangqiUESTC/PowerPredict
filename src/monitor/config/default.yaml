@@ -8,18 +8,19 @@ random:  # !!!try not to write any config in default.yaml if it's not used by mo
 
 test_name: "test" # test name
 
-sleep_time: 10 # sleep time between every test for every op/model
+sleep_time: 10 # sleep time(s) between every test for every op/model
+sample_time: 4096 # total time(ms) for every test for every op/model     !!! priority：sample_time > loop_per_sample !!!
 loop_per_sample: 64 # repeat time of every test for every op/model
 preheat: 80 # preheat time for every test
 
 cpu_info: false
-cpu_monitor_interval: 0.00001
+cpu_monitor_interval: 0.00001 # cpu monitor interval time(s)
 
 gpu_info: true
-gpu_monitor_interval: 0
+gpu_monitor_interval: 0 # gpu monitor interval time(s)
 
 disk_info: false
-disk_monitor_interval: 0.00001
+disk_monitor_interval: 0.00001 # disk monitor interval time(s)
 
 memory_info: false
-memory_monitor_interval: 0.00001
+memory_monitor_interval: 0.00001 # memory monitor interval time(s)
