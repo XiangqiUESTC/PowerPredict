@@ -131,9 +131,15 @@ if __name__ == '__main__':
 
     raw_data = merge_csv_to_pd(config.raw_file_regex, abs_raw_folder)
 
+    # 初始化预处理器，处理数据
+    preprocessor = PREPROCESSOR_REGISTRY[config.preprocessor](config)
+    preprocessor.process(raw_data)
+    # 初始化预测模型
+    predictor = PREDICTOR_REGISTRY[config.predictor](config)
 
     # 开始训练
-    preprocessor = PREPROCESSOR_REGISTRY[config.preprocessor]()
-    predictor = PREDICTOR_REGISTRY[config.predictor]()
-    trainer = TRAINER_REGISTRY[config.trainer]()
+    # 训练器进行训练
+    trainer = TRAINER_REGISTRY[config.trainer](preprocessor, predictor, config, logger)
+
+    trainer.train()
 
