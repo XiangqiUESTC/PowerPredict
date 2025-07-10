@@ -1,7 +1,6 @@
 """
     包括主要的监测逻辑函数和监控线程
 """
-from distutils.util import execute
 from time import sleep
 
 import psutil
