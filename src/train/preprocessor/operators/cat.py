@@ -2,8 +2,9 @@ import pandas as pd
 
 
 class CatPreprocessor:
-    def __init__(self, config):
+    def __init__(self, config, logger):
         self.config = config
+        self.logger = logger
         self.input_feature = None
         self.output_feature = None
 

@@ -3,11 +3,19 @@ from sklearn.neural_network import MLPRegressor
 import matplotlib.pyplot as plt
 
 class MLP:
-    def __init__(self, config):
-        self.model = None
+    def __init__(self, config,logger):
         self.config = config
+        self.logger = logger
+        self.model = None
+        self.info = None
+        self.preprocessor = None
 
-    def setup(self, config):
+    def setup(self, preprocessor, info):
+        """
+            info是gpu相关信息（或者其他信息），用于构建模型
+        """
+        self.preprocessor = preprocessor
+        self.info = info
         self.model = MLPRegressor(
             hidden_layer_sizes=(128, 256, 512),
             activation='relu',
@@ -16,9 +24,11 @@ class MLP:
             verbose=False,
             warm_start=False,
         )
-        pass
 
-    def fit(self, input_feature, output_feature):
+    def fit(self):
+        input_feature = self.preprocessor.input_feature
+        output_feature = self.preprocessor.output_feature
+
         self.model.fit(input_feature, output_feature)
         # 预测
         y_pred = self.model.predict(input_feature)
