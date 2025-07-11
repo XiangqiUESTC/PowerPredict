@@ -29,6 +29,7 @@ class MLP:
         input_feature = self.preprocessor.input_feature
         output_feature = self.preprocessor.output_feature
 
+
         self.model.fit(input_feature, output_feature)
         # 预测
         y_pred = self.model.predict(input_feature)
@@ -37,8 +38,11 @@ class MLP:
         r2 = r2_score(output_feature, y_pred)
         print(f"Mean Squared Error: {mse:.4f}")
         print(f"R-squared: {r2:.4f}")
-        plt.plot(output_feature, 'o-', color='#2c7bb6',
+
+        steps = list(range(0, len(output_feature)))
+        plt.plot(steps, output_feature, 'o-', color='#2c7bb6',
                  label='Actual Power', linewidth=1.5, markersize=6, alpha=0.8)
+
         plt.plot(y_pred, 's--', color='#d7191c',
                  label='Predicted Power', linewidth=1.5, markersize=5, alpha=0.8)
         # 样式设置
