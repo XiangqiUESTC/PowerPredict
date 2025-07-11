@@ -5,6 +5,7 @@ from copy import deepcopy
 import yaml
 from winsound import SND_NOWAIT
 
+from utils.config_loader import dict_to_attribute_recursively
 from utils.logger import Logger
 from os.path import join, abspath, dirname
 from types import SimpleNamespace
@@ -118,7 +119,7 @@ if __name__ == '__main__':
     config.update(task_config)
     config.update(pos_args)
     logger.info(f"最终配置为：\n{pprint.pformat(config, indent=4, width=1)}")
-    config = SimpleNamespace(**config)
+    config = dict_to_attribute_recursively(config)
 
     # 读取数据
     # 获取原始数据文件夹
@@ -131,7 +132,7 @@ if __name__ == '__main__':
     raw_data = merge_csv_to_pd(config.raw_file_regex, abs_raw_folder)
 
     # 开始训练，在训练器中初始化数据预处理器和预测模型
-    trainer = TRAINER_REGISTRY[config.trainer](raw_data, config, logger)
+    trainer = TRAINER_REGISTRY[config.trainer.name](raw_data, config, logger)
 
     trainer.train()
 
