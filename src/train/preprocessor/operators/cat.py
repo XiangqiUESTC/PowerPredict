@@ -37,6 +37,6 @@ class CatPreprocessor(BasePreprocessor):
         # 重新排列列顺序（可选）
         raw_data = raw_data[all_columns + [col for col in raw_data.columns if col not in all_columns]]
 
-        self.input_feature = raw_data[["pos11", "pos12", "pos13", "pos21", "pos22", "pos23", "pos31", "pos32", "pos33", "dim"]]
+        self.input_feature = raw_data[["pos11", "pos12", "pos13", "pos21", "pos22", "pos23", "pos31", "pos32", "pos33", "dim", "avg_temperature", "avg_gpu_memory_used"]]
         self.output_feature = raw_data["duration"]*raw_data["avg_gpu_power"]*1e-9
 
