@@ -1,14 +1,16 @@
 import pandas as pd
 
+from train.core.base_preprocessor import BasePreprocessor
 
-class CatPreprocessor:
-    def __init__(self, config, logger):
-        self.config = config
-        self.logger = logger
+
+class CatPreprocessor(BasePreprocessor):
+    def __init__(self, config, logger, raw_data):
+        super(CatPreprocessor, self).__init__(config, logger, raw_data)
         self.input_feature = None
         self.output_feature = None
 
-    def process(self, raw_data):
+    def process(self):
+        raw_data = self.raw_data
         # 假设'tensor_shape'列包含类似"[[1,2,3],[4,5,6],[7,8,9]]"的字符串
         # 1. 去除外层方括号
         raw_data['tensor_shapes'] = raw_data['tensor_shapes'].str.strip('[]')
