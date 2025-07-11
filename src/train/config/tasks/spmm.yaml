@@ -1,4 +1,5 @@
 raw_file_regex: "spmm.csv" # 原始数据文件名(可以考虑正则式和列表表达)
 raw_folder: "spmm_results" # 原始数据文件夹
 
-preprocessor: "spmm" # 数据预处理器
+preprocessor:
+  name: "spmm" # 数据预处理器
