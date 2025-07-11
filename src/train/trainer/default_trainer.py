@@ -10,9 +10,9 @@ class DefaultTrainer:
         self.logger = logger
 
         # 初始化数据预处理器
-        self.preprocessor = PREPROCESSOR_REGISTRY[config.preprocessor](config, logger)
+        self.preprocessor = PREPROCESSOR_REGISTRY[config.preprocessor.name](config, logger, raw_data)
         # 初始化预测模型
-        self.predictor = PREDICTOR_REGISTRY[config.predictor](config, logger)
+        self.predictor = PREDICTOR_REGISTRY[config.predictor.name](config, logger)
 
     def build_predictor(self):
         """
@@ -34,6 +34,6 @@ class DefaultTrainer:
         self.predictor.setup(self.preprocessor, gpu_info)
 
         #
-        self.preprocessor.process(self.raw_data)
+        self.preprocessor.process()
 
         self.predictor.fit()
