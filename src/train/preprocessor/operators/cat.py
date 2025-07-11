@@ -40,5 +40,3 @@ class CatPreprocessor(BasePreprocessor):
         self.input_feature = raw_data[["pos11", "pos12", "pos13", "pos21", "pos22", "pos23", "pos31", "pos32", "pos33", "dim"]]
         self.output_feature = raw_data["duration"]*raw_data["avg_gpu_power"]*1e-9
 
-        print(self.input_feature)
-        print(self.output_feature)

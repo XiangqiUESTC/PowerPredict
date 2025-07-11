@@ -14,6 +14,7 @@ from train.trainer import TRAINER_REGISTRY
 from train.preprocessor import PREPROCESSOR_REGISTRY
 
 from utils.csv_utils import  merge_csv_to_pd
+from utils.util_function import recursive_dict_update
 
 if __name__ == '__main__':
     # 命令示例
@@ -51,12 +52,12 @@ if __name__ == '__main__':
     for i in index_to_del:
         del argv[i]
 
-    pos_args = {}
+    name_args = {}
     ## 处理名称参数，主要是解决嵌套问题
     assert len(pos_arg_key) == len(pos_arg_value)
     for (raw_key, value,) in zip(pos_arg_key, pos_arg_value):
         keys = raw_key.split(".")
-        dic = pos_args
+        dic = name_args
         for key, i in zip(keys, range(len(keys))):
             # 若不是最后一层
             if i != len(keys)-1:
@@ -78,7 +79,7 @@ if __name__ == '__main__':
         exit(-1)
 
     task_name = argv[1]
-    pos_args["raw_folder"] = argv[2]
+    name_args["raw_folder"] = argv[2]
 
     # 读取并按优先级合并配置
     ##  配置包括默认配置、训练任务配置和命令行配置
@@ -111,13 +112,13 @@ if __name__ == '__main__':
 
     logger.info(f"默认配置为：\n{pprint.pformat(default_config, indent=4, width=1)}")
     logger.info(f"任务{task_name}对应的配置为：\n{pprint.pformat(task_config, indent=4, width=1)}")
-    logger.info(f"命令行配置为：\n{pprint.pformat(pos_args, indent=4, width=1)}")
+    logger.info(f"命令行配置为：\n{pprint.pformat(name_args, indent=4, width=1)}")
 
     # config是最终的配置
     config = {}
-    config.update(default_config)
-    config.update(task_config)
-    config.update(pos_args)
+    recursive_dict_update(config, default_config)
+    recursive_dict_update(config, task_config)
+    recursive_dict_update(config, name_args)
     logger.info(f"最终配置为：\n{pprint.pformat(config, indent=4, width=1)}")
     config = dict_to_attribute_recursively(config)
 
