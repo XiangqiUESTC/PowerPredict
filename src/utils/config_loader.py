@@ -1,4 +1,6 @@
+from collections.abc import Mapping, Iterable
 from copy import deepcopy
+from types import SimpleNamespace
 
 import yaml
 
@@ -64,3 +66,31 @@ def load_config(self_config_path, default_config_path, args):
     final_config["mode"] = final_mode
 
     return final_config, self_config_dict.get(final_mode, {}), default_config_dict.get(final_mode, {})
+
+
+def dict_to_attribute_recursively(config):
+    """
+        递归地将字典（包括多层嵌套）转换为 SimpleNamespace 对象
+
+        参数:
+            config: 输入配置，可以是字典、列表、元组或其他类型
+
+        返回:
+            转换后的 SimpleNamespace 对象或原始类型
+        """
+    # 如果是字典类型，递归处理每个值并创建命名空间
+    if isinstance(config, Mapping):
+        for key, value in config.items():
+            config[key] = dict_to_attribute_recursively(value)
+        return SimpleNamespace(**config)
+
+    # 如果是列表或元组，递归处理每个元素
+    elif isinstance(config, Iterable) and not isinstance(config, str):
+        processed = []
+        for item in config:
+            processed.append(dict_to_attribute_recursively(item))
+        return type(config)(processed)  # 保持原始容器类型
+
+    # 其他类型直接返回
+    else:
+        return config
