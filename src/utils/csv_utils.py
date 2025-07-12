@@ -44,3 +44,25 @@ def csv_to_dict_list(csv_reader):
         results[key] = column
 
     return results
+
+def write_dict_to_csv(dictionary, result_file, mode='a'):
+    """
+    将字典写入 CSV 文件，支持覆盖或续写模式
+
+    :param dictionary: 要写入的字典（单行数据）
+    :param result_file: 目标 CSV 文件路径
+    :param mode: 写入模式，'w'=覆盖，'a'=续写
+    """
+    # 新增目录创建逻辑
+    os.makedirs(dirname(result_file), exist_ok=True)
+    file_exists = os.path.isfile(result_file)
+
+    with open(result_file, mode, newline='', encoding='utf-8') as f:
+        writer = csv.DictWriter(f, fieldnames=dictionary.keys())
+
+        need_header = (mode == 'w') or (not file_exists) or (file_exists and os.stat(result_file).st_size == 0)
+        # 如果是覆盖模式（'w'），需要写入表头
+        if need_header:
+            writer.writeheader()
+
+        writer.writerow(dictionary)

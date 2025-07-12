@@ -13,8 +13,7 @@ from monitor.disk import get_disk_info
 from monitor.memory import get_memory_info
 from utils.device import is_device_avail_on_torch
 from utils.device import is_device_gpu
-from utils.csv_utils import write_csv
-
+from utils.csv_utils import write_csv, write_dict_to_csv
 
 from datetime import datetime
 from os.path import join, dirname, abspath
@@ -54,9 +53,6 @@ def run_all_and_monitor(args, logger, op_names, num_samples, result_folder):
         logger.info(f"执行操作的设备是{operator.device}")
 
         file_name = op_name + ".csv"
-
-        # 最终结果
-        records = {}
 
         # 获取运行算子所必要的信息：所指定的设备、一次实验重复的次数、实验间的间隔时间、预热次数
         # 设备信息：
@@ -204,10 +200,12 @@ def run_all_and_monitor(args, logger, op_names, num_samples, result_folder):
                         if sample_time:
                             passed_sample_time = (current_time_ns - start_time_ns)/1e6
                             if passed_sample_time > sample_time:
+                                logger.info("到达采样时间！")
                                 break
                         # 否则以重复次数为准
                         elif loop_per_sample:
                             if execute_time > loop_per_sample:
+                                logger.info("到达采样上限次数！")
                                 break
                         else:
                             logger.error("至少应该指定一次测试的测试总时间或者次数！而现在sample_time和loop_per_sample均为None！")
@@ -233,6 +231,7 @@ def run_all_and_monitor(args, logger, op_names, num_samples, result_folder):
 
                     # 计算时间
                     duration = round((end_time_ns - start_time_ns) / execute_time, 2)
+                    logger.info(f"共执行{execute_time}次！")
 
                     other_data = {
                         "duration": duration,
@@ -244,22 +243,18 @@ def run_all_and_monitor(args, logger, op_names, num_samples, result_folder):
 
                     logger.info(f"所有监测子进程正常退出，监测到数据\n{test_config}{other_data}{datas}")
 
-                    # 解析数据字典
-                    dictionaries = [test_config, other_data, *datas]
-                    for dictionary in dictionaries:
-                        for k, v in dictionary.items():
-                            # 第一次的时候需要初始化
-                            if k not in records:
-                                records[k] = []
-                            records[k].append(v)
+                    # 直接写数据
+                    # 算子运行结束，开始写最终的数据
+                    result_file = join(result_folder, file_name)
+                    dictionary = {**test_config, **other_data}
+                    for data in datas:
+                        dictionary.update(data)
+
+                    write_dict_to_csv(dictionary, result_file)
 
                 except Exception as error:
                     logger.error(f"{op_name}第{j + 1}/{loop_per_sample}次重复测试失败，原因是：\n")
                     logger.exception(error)
-            # 算子运行结束，开始写最终的数据
-            result_file = join(result_folder, file_name)
-            # 写入CSV
-            write_csv(result_file, records)
         else:
             logger.error(f"所指定的{device}不可用,已跳过测试")
         logger.info(f"对算子{op_name}的{num_samples}次测试结束!\n\n")
