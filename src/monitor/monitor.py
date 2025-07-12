@@ -187,6 +187,7 @@ def run_all_and_monitor(args, logger, op_names, num_samples, result_folder):
                     while True:
                         try:
                             operator.execute()
+                            torch.cuda.empty_cache()
                         except Exception as error:
                             logger.error(error)
                             logger.exception(error)
@@ -195,6 +196,7 @@ def run_all_and_monitor(args, logger, op_names, num_samples, result_folder):
                             # 跳出
                             break
                         execute_time += 1
+                        torch.cuda.synchronize()
                         current_time_ns = time.time_ns()
                         # 如果设置了采样时间，以采样时间为准
                         if sample_time:
