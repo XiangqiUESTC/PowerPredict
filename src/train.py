@@ -69,17 +69,17 @@ if __name__ == '__main__':
 
     ## 处理位置参数
     ### 检查合法性
-    if len(argv) != 3:
+    if len(argv) != 2:
         logger.info(f"位置参数有：{argv}")
-        if len(argv) < 3:
+        if len(argv) < 2:
             logger.error("未提供足够的参数！")
-        elif len(argv) > 3:
+        elif len(argv) > 2:
             logger.error("检查是否有多余的参数！")
-        logger.error("正确的训练指令是: python train.py [训练任务名] [训练数据文件夹] [--pos_arg_name_1=value_1 ...]")
+        logger.error("正确的训练指令是: python train.py [训练任务名] [--pos_arg_name_1=value_1 ...]")
         exit(-1)
 
     task_name = argv[1]
-    name_args["raw_folder"] = argv[2]
+    name_args["task_name"] = argv[1]
 
     # 读取并按优先级合并配置
     ##  配置包括默认配置、训练任务配置和命令行配置
@@ -131,6 +131,7 @@ if __name__ == '__main__':
         exit(-1)
 
     raw_data = merge_csv_to_pd(config.raw_file_regex, abs_raw_folder)
+    logger.info(f"从原始数据文件夹中共读出{len(raw_data)}条数据")
 
     # 开始训练，在训练器中初始化数据预处理器和预测模型
     trainer = TRAINER_REGISTRY[config.trainer.name](raw_data, config, logger)
