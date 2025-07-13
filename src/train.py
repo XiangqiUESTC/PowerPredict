@@ -120,6 +120,9 @@ if __name__ == '__main__':
     recursive_dict_update(config, task_config)
     recursive_dict_update(config, name_args)
     logger.info(f"最终配置为：\n{pprint.pformat(config, indent=4, width=1)}")
+
+    # 添加项目绝对根路径
+    config["project_abs_path"] = str(project_abs_path)
     config = dict_to_attribute_recursively(config)
 
     # 读取数据

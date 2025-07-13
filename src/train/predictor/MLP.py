@@ -1,3 +1,5 @@
+import os
+from datetime import datetime
 from os.path import join
 
 import numpy as np
@@ -71,7 +73,13 @@ class MLP:
             (abs_errors_percent * 100).round(2).astype(str) + '%'
         ], axis=1)
 
-        output_csv.to_csv("output_results.csv", index=False)
+        # 保存训练数据的csv
+        result_folder = join(self.config.project_abs_path, self.config.result_folder)
+        t = datetime.now().strftime("%Y-%m-%d_%H-%M-%S")
+        os.makedirs(result_folder, exist_ok=True)
+        output_csv.to_csv(
+            join(result_folder, f"{self.config.task_name}-{t}.csv"),
+            index=False)
 
         steps = list(range(0, len(output_feature)))
         plt.plot(steps, output_feature, 'o-', color='#2c7bb6',

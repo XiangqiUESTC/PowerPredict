@@ -1,7 +1,8 @@
 data_root_folder: "train_data" # 训练数据根目录
 source_data_folder: "raw" # 原始数据存放的子目录
 preprocessed_data_folder: "preprocessed" # 处理后的数据存放的子目录
-result: "monitor_results"
+
+result_folder: "results/train" # 训练结果
 
 trainer:
   name: "default_trainer" # 使用默认训练器

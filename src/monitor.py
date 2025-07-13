@@ -77,7 +77,7 @@ if __name__ == '__main__':
     logger.info(f"每个算子或模型测试{num_samples}次")
 
     # 生成一下结果文件夹
-    t = datetime.now().strftime("%Y-%monitors-%d_%H-%M-%S")
+    t = datetime.now().strftime("%Y-%m-%d_%H-%M-%S")
     test_folder =  f"test-{t}" if not hasattr(args, "test_name") else f"{args['test_name']}-{t}"
     results_folder = join(dirname(dirname(abspath(__file__))), "results", test_folder)
 
