@@ -1,0 +1,5 @@
+raw_file_regex: "lstm.csv" # 原始数据文件名(可以考虑正则式和列表表达)
+raw_folder: "lstm_results" # 原始数据文件夹
+
+preprocessor:
+  name: "lstm" # 数据预处理器
