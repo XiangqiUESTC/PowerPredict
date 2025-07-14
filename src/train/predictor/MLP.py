@@ -23,10 +23,10 @@ class MLP:
         self.preprocessor = preprocessor
         self.info = info
         self.model = MLPRegressor(
-            hidden_layer_sizes=(64, 64),
+            hidden_layer_sizes=(256, 256, 256, 256, 256, 256),
             activation='relu',
             solver='adam',
-            max_iter=10000,
+            max_iter=40000,
             verbose=False,
             warm_start=False,
         )
@@ -89,7 +89,7 @@ class MLP:
                  label='Predicted Power', linewidth=1.5, markersize=5, alpha=0.8)
         # 样式设置
         plt.xlabel('Sample Index', fontsize=12)
-        plt.ylabel('Power Consumption', fontsize=12)
+        plt.ylabel('Power Consumption(Watt)', fontsize=12)
         plt.title(f'{self.config.task_name} Actual vs Predicted Power Consumption\n' , fontsize=14, pad=8)
         plt.legend(loc='upper right', fontsize=10)
         plt.show()
