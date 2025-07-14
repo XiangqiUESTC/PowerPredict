@@ -7,7 +7,7 @@ from os.path import join, dirname
 class Logger:
     def __init__(self, log_dir, test_name="Test"):
         # 初始化日志实例对象
-        logger = logging.getLogger(f"{test_name} Log")
+        logger = logging.getLogger(f"PowerPredict")
         logger.setLevel(logging.DEBUG)
 
         # 设置控制台输出handler

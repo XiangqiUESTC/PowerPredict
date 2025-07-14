@@ -1,6 +1,9 @@
 import csv
 import os
+import re
 from os.path import dirname
+
+import pandas as pd
 
 
 def write_csv(filename, data):
@@ -44,3 +47,39 @@ def csv_to_dict_list(csv_reader):
         results[key] = column
 
     return results
+
+def merge_csv_to_pd(file_regex, root_folder):
+    """
+
+        Argument
+            file_regex: 要读的csv文件
+            root_folder: 根目录绝对路径
+        Description
+            递归地读root_folder下满足正则式file_regex的csv格式文件，并合并为pd对象
+        Return
+    """
+    # 编译正则表达式
+    pattern = re.compile(file_regex)
+    # 存储所有找到的DataFrame
+    all_dataframes = []
+
+    # 递归遍历目录
+    for root, _, files in os.walk(root_folder):
+        for file in files:
+            # 检查文件是否匹配正则表达式
+            if pattern.search(file):
+                # 构建完整文件路径
+                file_path = os.path.join(root, file)
+                try:
+                    # 读取CSV文件并添加到列表
+                    df = pd.read_csv(file_path)
+                    all_dataframes.append(df)
+                except Exception as e:
+                    print(f"Error reading {file_path}: {str(e)}")
+
+    # 合并所有DataFrame
+    if all_dataframes:
+        return pd.concat(all_dataframes, ignore_index=True)
+    else:
+        print("No matching CSV files found.")
+        return pd.DataFrame()  # 返回空DataFrame

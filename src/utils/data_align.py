@@ -22,7 +22,7 @@ def csv_align(processor_csv_filename, monitor_csv_filename):
         processor_dict_list = csv_to_dict_list(processor_csv)
         monitor_dict_list = csv_to_dict_list(monitor_data_csv)
 
-        # 预处理 monitor 的时间戳列表（已有序）
+        # 预处理 monitors 的时间戳列表（已有序）
         monitor_timestamps = monitor_dict_list["timestamp"]
 
         # 需要对齐的键名
@@ -52,7 +52,7 @@ def csv_align(processor_csv_filename, monitor_csv_filename):
             # 二分查找找到右边界（第一个 > end_time 的位置）
             right = bisect.bisect_right(monitor_timestamps, end_time)
 
-            # 提取满足条件的 monitor 行索引 [left, right)
+            # 提取满足条件的 monitors 行索引 [left, right)
             # todo:这个right+1中的+1按理应该去掉，但是有很多空数据，暂时不去掉
 
             # print(list(range(left, right+1)))

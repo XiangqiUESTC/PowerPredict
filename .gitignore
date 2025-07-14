@@ -8,3 +8,4 @@ data/**
 **/log/**
 **/utils/data/**
 **/__pycache__/**
+train_data/**
