@@ -1,5 +1,9 @@
 mode: "random"
 
 increase:
+  step_increment: 1
+  m: 100
+  n: 100
+  p: 100
 
 random:
