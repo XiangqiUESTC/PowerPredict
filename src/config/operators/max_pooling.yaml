@@ -2,9 +2,7 @@ mode: "random"
 
 increase:
   MAX_DIM_NUM: 1024
-  H_MAX: 2048 * 8
-  W_MAX: 2048 * 8
-  step_channel: 32
-  step_h_w: 128
-
+  H_MAX: 4096
+  W_MAX: 4096
+  step_increment: 16
 random:
