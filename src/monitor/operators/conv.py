@@ -16,7 +16,10 @@ class Conv2D(BaseProcessor):
         self.times = 0
         self.height_in = self.basicNumber
         self.width_in = self.basicNumber
-
+        in_channels_list = [3, 16, 32, 64, 128]
+        self.C_in = random.choice(in_channels_list)
+        out_channels_list = [3, 16, 32, 64, 128]
+        self.C_out = random.choice(out_channels_list)
     def generate_config(self):
         """
         生成随机卷积层的合法参数组合：
@@ -24,10 +27,8 @@ class Conv2D(BaseProcessor):
         - 卷积参数: kernel_size, stride, padding
         - 输出形状: (C_out, H_out, W_out)
         """
-        in_channels_list = [3, 16, 32, 64, 128]
-        C_in = random.choice(in_channels_list)
-        out_channels_list = [3, 16, 32, 64, 128]
-        C_out = random.choice(out_channels_list)
+        C_in = self.C_in
+        C_out = C_in
         # 随机生成输入尺寸 (H_in, W_in)
         heights = [32, 64, 128, 256, 512, 1024]
         widths = [32, 64, 128, 256, 512, 1024]
@@ -36,10 +37,9 @@ class Conv2D(BaseProcessor):
             H_in, W_in = random.sample(heights + widths, 2)
             # 生成合法卷积参数（确保输出尺寸 ≥1）
             while True:
-                kernel_size = random.choice([1, 3, 5, 7])
-                stride = random.choice([1, 2, 3])
-                max_padding = kernel_size // 2
-                padding = random.randint(0, max_padding)
+                kernel_size = random.choice([3])
+                stride = random.choice([1])
+                padding = kernel_size // 2
                 # 计算理论输出尺寸
                 H_out = (H_in + 2 * padding - kernel_size) // stride + 1
                 W_out = (W_in + 2 * padding - kernel_size) // stride + 1
@@ -70,15 +70,17 @@ class Conv2D(BaseProcessor):
                 self.height_in = self.max_height_in
             if self.width_in > self.max_width_in:
                 self.width_in = self.max_width_in
-            # while True:
-            kernel_size = 3 #random.choice([1, 3, 5, 7])
-            stride = 1 #random.choice([1, 2, 3])
-            padding = 1
+            while True:
+                kernel_size = random.choice([1, 3, 5, 7])
+                stride = random.choice([1, 2, 3])
+                max_padding = kernel_size // 2
+                padding = random.randint(0, max_padding)
                 # 计算理论输出尺寸
-            H_out = (self.height_in + 2 * padding - kernel_size) // stride + 1
-            W_out = (self.width_in + 2 * padding - kernel_size) // stride + 1
+                H_out = (self.height_in + 2 * padding - kernel_size) // stride + 1
+                W_out = (self.width_in + 2 * padding - kernel_size) // stride + 1
                 # 验证输出尺寸有效性
-
+                if H_out >= 1 and W_out >= 1:
+                    break
             self.config = {
                 "tensor_shape": (C_in, self.height_in, self.width_in),  # 输入形状 (C_in, H_in, W_in)
                 "kernel_size": kernel_size,

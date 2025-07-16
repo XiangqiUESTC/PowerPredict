@@ -2,6 +2,7 @@
 # @Time :2025/7/15 22:47
 from train.core.base_preprocessor import BasePreprocessor
 from utils.preprocess_util import tensor_shape_split
+import pandas as pd
 
 class AddPreprocessor(BasePreprocessor):
     def __init__(self, config, logger, raw_data):

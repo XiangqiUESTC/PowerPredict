@@ -7,7 +7,7 @@ from sklearn.metrics import mean_squared_error, r2_score, mean_absolute_error, m
 from sklearn.neural_network import MLPRegressor
 import matplotlib.pyplot as plt
 import pandas as pd
-
+from sklearn.model_selection import train_test_split
 class MLP:
     def __init__(self, config, logger):
         self.config = config
@@ -23,10 +23,10 @@ class MLP:
         self.preprocessor = preprocessor
         self.info = info
         self.model = MLPRegressor(
-            hidden_layer_sizes=(256, 256, 256, 256, 256, 256),
+            hidden_layer_sizes=(128,128,128,128,128,128),
             activation='relu',
             solver='adam',
-            max_iter=40000,
+            max_iter=5000,
             verbose=False,
             warm_start=False,
         )
@@ -35,42 +35,60 @@ class MLP:
         input_feature = self.preprocessor.input_feature
         output_feature = self.preprocessor.output_feature
 
-        self.model.fit(input_feature, output_feature)
+        X_train, X_test, y_train, y_test = train_test_split(
+            input_feature,
+            output_feature,
+            test_size=0.2,  # 测试集比例（默认 0.25）
+            # random_state=42  # 随机种子，确保可复现
+        )
+        print("训练集大小:", X_train.shape, y_train.shape)
+        print("测试集大小:", X_test.shape, y_test.shape)
+
+        self.model.fit(X_train, y_train)
 
         # 预测
-        y_pred = self.model.predict(input_feature)
+        y_pred = self.model.predict(X_test)
         # 评估模型
-        mse = mean_squared_error(output_feature, y_pred)
-        mae = mean_absolute_error(output_feature, y_pred)
-        r2 = r2_score(output_feature, y_pred)
+        mse = mean_squared_error(y_test, y_pred)
+        mae = mean_absolute_error(y_test, y_pred)
+        r2 = r2_score(y_test, y_pred)
 
         # 确保使用相同的索引
         output_feature = self.preprocessor.output_feature  # 保留原始索引
 
         # 计算绝对百分比误差（保留原始索引）
         abs_errors_percent = pd.Series(
-            np.abs((output_feature - y_pred) / output_feature),
-            index=output_feature.index,
+            np.abs((y_test - y_pred) / y_test),
+            index=y_test.index,
             name="absolute percent error"
         )
 
         # 计算MAPE（两种方法结果应一致）
         mape = abs_errors_percent.mean() * 100
-        mape2 = mean_absolute_percentage_error(output_feature, y_pred)
+        mape2 = mean_absolute_percentage_error(y_test, y_pred)
 
         # 创建预测值Series（强制使用相同索引）
-        y_pred_series = pd.Series(
-            y_pred,
-            index=output_feature.index,  # 关键点：对齐索引
-            name='predict cost'
-        )
+        # y_pred_series = pd.Series(
+        #     y_pred,
+        #     index=y_test.index,  # 关键点：对齐索引
+        #     name='predict cost'
+        # )
 
         # 合并数据（确保所有组件有相同索引）
+        # output_csv = pd.concat([
+        #     X_test,
+        #     y_test.rename("real cost"),
+        #     # y_pred_series,
+        #     (abs_errors_percent * 100).round(2).astype(str) + '%'
+        # ], axis=1)
         output_csv = pd.concat([
-            self.preprocessor.input_feature,
-            output_feature.rename("real cost"),
-            y_pred_series,
-            (abs_errors_percent * 100).round(2).astype(str) + '%'
+            X_test.reset_index(drop=True),  # 丢弃原始索引
+            y_test.rename("real cost").reset_index(drop=True),
+            pd.Series(y_pred, name="predict cost").reset_index(drop=True),
+            pd.Series(
+                (abs_errors_percent * 100).round(2).astype(str) + '%',
+                name="error %"
+            ).reset_index(drop=True)
         ], axis=1)
 
         # 保存训练数据的csv
@@ -81,8 +99,8 @@ class MLP:
             join(result_folder, f"{self.config.task_name}-{t}.csv"),
             index=False)
 
-        steps = list(range(0, len(output_feature)))
-        plt.plot(steps, output_feature, 'o-', color='#2c7bb6',
+        steps = list(range(0, len(y_test)))
+        plt.plot(steps, y_test.to_numpy(), 'o-', color='#2c7bb6',
                  label='Actual Power', linewidth=1.5, markersize=6, alpha=0.8)
 
         plt.plot(y_pred, 's--', color='#d7191c',

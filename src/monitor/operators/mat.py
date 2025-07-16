@@ -1,5 +1,5 @@
 import torch
-from monitor.core.base_processor import BaseProcessor
+from core.base_processor import BaseProcessor
 import random
 
 
@@ -9,11 +9,10 @@ class Mat(BaseProcessor):
         self.mat1 = None
         self.mat2 = None  # 相当于另一个矩阵
         self.output_tensor = None
-
-        # 增加模式需要初始化一些变量
-        if self.mode == "increase":
-            self.times = 0
-
+        self.times = 0
+        self.input_dim = [random.randint(1, 1048), random.randint(1, 1048)]
+        self.weight_dim = [self.input_dim[1], random.randint(1, 1048)]
+        self.output_dim = [self.input_dim[0], self.weight_dim[1]]
     def generate_config(self):
         """
         生成矩阵乘法参数：
@@ -21,37 +20,36 @@ class Mat(BaseProcessor):
         - 权重形状: (K, N)
         - 输出形状: (M, N)
         """
-        m = None
-        n = None
-        p = None
+        # 随机生成矩阵维度（支持自定义默认参数）
 
         if self.mode == "increase":
-            # 随机生成矩阵维度（支持自定义默认参数）
-            m = self.m + (self.times//3 + int(self.times % 3 >= 0)) * self.step_increment
-            n = self.n + (self.times//3 + int(self.times % 3 >= 1)) * self.step_increment
-            p = self.p + (self.times//3 + int(self.times % 3 >= 2)) * self.step_increment
-
+            self.input_dim[0]= self.BASIC_NUMBER  * ((self.times + 2) // 3  + 1)
+            self.input_dim[1]= self.BASIC_NUMBER  * ((self.times + 1) // 3  + 1)
+            self.weight_dim[0] = self.BASIC_NUMBER * ((self.times + 1) // 3 + 1)
+            self.weight_dim[1] = self.BASIC_NUMBER * ((self.times) // 3 + 1)
             self.times += 1
-
+        else:
+            self.input_dim = [random.randint(1, 1048), random.randint(1, 1048)]
+            self.weight_dim = [input_dim[1], random.randint(1, 1048)]
+            self.output_dim = [input_dim[0], weight_dim[1]]
+        self.output_dim = [self.input_dim[0], self.weight_dim[1]]
         self.config = {
-            "m": m,
-            "p": n,
-            "n": p,
+            "mat1_shape": self.input_dim,
+            "mat2_shape": self.weight_dim,
+            "output_shape": self.output_dim
         }
-
     def setup(self):
         """生成输入张量"""
-        m = self.config["m"]
-        p = self.config["p"]
-        n = self.config["n"]
+        M, K = self.config["mat1_shape"]
+        K, N = self.config["mat2_shape"]
         self.mat1 = torch.randn(
-            m, p,
+            M, K,
             dtype=torch.float32,
             device=self.device
         )
         # 初始化矩阵2
         self.mat2 = torch.randn(
-            p, n,
+            K, N,
             dtype=torch.float32,
             device=self.device
         )
