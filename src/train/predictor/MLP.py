@@ -1,6 +1,7 @@
 import os
 from datetime import datetime
 from os.path import join
+from sklearn.preprocessing import StandardScaler
 
 import numpy as np
 from sklearn.metrics import mean_squared_error, r2_score, mean_absolute_error, mean_absolute_percentage_error
@@ -26,7 +27,7 @@ class MLP:
             hidden_layer_sizes=(128,128,128,128,128,128),
             activation='relu',
             solver='adam',
-            max_iter=5000,
+            max_iter=40000,
             verbose=False,
             warm_start=False,
         )
@@ -35,12 +36,34 @@ class MLP:
         input_feature = self.preprocessor.input_feature
         output_feature = self.preprocessor.output_feature
 
-        X_train, X_test, y_train, y_test = train_test_split(
-            input_feature,
-            output_feature,
-            test_size=0.2,  # 测试集比例（默认 0.25）
-            # random_state=42  # 随机种子，确保可复现
+        input_feature = pd.DataFrame(input_feature)
+        output_feature = pd.Series(output_feature) if not isinstance(output_feature, pd.Series) else output_feature
+
+        # 第二步：归一化特征X（整体归一化）
+        scaler = StandardScaler()
+        X_normalized = pd.DataFrame(
+            scaler.fit_transform(input_feature),
+            columns=input_feature.columns,
+            index=input_feature.index
         )
+
+        # 第三步：分割数据集（使用归一化后的X和原始y）
+        X_train, X_test, y_train, y_test = train_test_split(
+            X_normalized,
+            output_feature,
+            test_size=0.2,
+            # random_state=42  # 建议取消注释以保持可复现性
+        )
+
+        # 第四步：保留原始分割索引
+        test_indices = X_test.index
+
+        # 第五步：获取对应的原始X数据（未归一化）
+        X_test_raw = input_feature.loc[test_indices]
+
+        # 增大1000倍，训练更准确
+        y_train = y_train * 1000
+        y_test = y_test * 1000
         print("训练集大小:", X_train.shape, y_train.shape)
         print("测试集大小:", X_test.shape, y_test.shape)
 
@@ -48,6 +71,9 @@ class MLP:
 
         # 预测
         y_pred = self.model.predict(X_test)
+        y_test = y_test / 1000
+        y_pred = y_pred / 1000
+
         # 评估模型
         mse = mean_squared_error(y_test, y_pred)
         mae = mean_absolute_error(y_test, y_pred)
@@ -82,7 +108,7 @@ class MLP:
         #     (abs_errors_percent * 100).round(2).astype(str) + '%'
         # ], axis=1)
         output_csv = pd.concat([
-            X_test.reset_index(drop=True),  # 丢弃原始索引
+            X_test_raw.reset_index(drop=True),  # 丢弃原始索引
             y_test.rename("real cost").reset_index(drop=True),
             pd.Series(y_pred, name="predict cost").reset_index(drop=True),
             pd.Series(
